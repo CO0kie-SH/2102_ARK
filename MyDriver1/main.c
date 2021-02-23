@@ -49,6 +49,7 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT DriverObject)
 	// 设置设备对象的读写方式为缓冲区方式
 	DeviceObject->Flags |= DO_DIRECT_IO;
 
+	KdPrint(("设备对象创建(%08X)(%wZ)\n", Status, SymLinkName));
 	return Status;
 }
 
@@ -112,7 +113,7 @@ NTSTATUS WriteDispath(
 
 	// 如果使用的是 DIRECT 方式，那么系统会给我们提供一个绑定到用户缓冲区的
 	//	MDL，通过 MmGetSystemAddressForMdlSafe 进行映射
-	PVOID Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+	char* Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
 	KdPrint(("R3写入了: %s\n", (char*)Buffer));
 
 	// 将实际的操作数量，返回给 R3，由 ReadFile 的第 4 个参数接受
@@ -130,6 +131,7 @@ NTSTATUS WriteDispath(
 												// 短时间内不会用到，可以放置到页交换文件中
 VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 {
+	KdPrint(("\n驱动卸载(%p)\n", DriverObject));
 	// 如果设备对象创建成功，那么需要在卸载函数中删除设备对象和符号链接名称
 	// 必须要先删除符号链接名，再删除设备对象，否则会出现不可描述的问题
 
@@ -151,6 +153,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
 	DriverObject->DriverUnload = DriverUnload;
+	KdPrint(("\n驱动创建(%p)\n", DriverObject));
 
 	// 为当前驱动下的所有设备对象，设置消息响应函数
 	for (int i = 0; i < 28; ++i)

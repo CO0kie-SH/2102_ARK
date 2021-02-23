@@ -18,5 +18,13 @@
     <ClCompile Include="2102_ARK.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CDevice.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CDevice.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

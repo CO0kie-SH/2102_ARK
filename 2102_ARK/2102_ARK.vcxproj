@@ -141,6 +141,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="2102_ARK.cpp" />
+    <ClCompile Include="CDevice.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CDevice.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,8 +2,14 @@
 //
 
 #include <iostream>
+#include "CDevice.h"
+
+
+
 
 int main()
 {
     std::cout << "Hello World!\n";
+    CDevice cDevice;
+    system("pause");
 }
