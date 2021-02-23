@@ -62,8 +62,45 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	if (8 == uRet)
 	{
 		KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
-		pInfo->ulNum1 = 1;
-		return 4096;
+		return GetPIDs(pInfo->ulBuff, pInfo->ulNum1, (LPMyProcess)pInfo->byBuf3);
 	}
 	return uRet;
+}
+
+ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID)
+{
+	PEPROCESS Process = NULL;
+	KdPrint(("[%lu][%04lu][%p]\n", MaxBuff, MaxPID, (char*)pPID));
+	ULONG count = 0, tid = 0, maxID = MaxBuff / 4 / 2;
+	while (tid <= MaxPID && count <= maxID)
+	{
+		if (NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(tid), &Process)))
+		{
+			pPID[count].tPID = tid;
+			pPID[count].pPID = *((ULONG*)((char*)Process + 0x140));
+			count++;
+			ObDereferenceObject(Process);
+		}
+		tid += 4;
+	}
+
+
+	// 提供一个用于遍历的范围，以 4 为递增值，暴力遍历所有的进程，由于
+	//	进程和线程被放置在了同一个位置，所以两者的 id 是处于同意序列的
+	//for (, *PPID, *pDbg; id <= MaxPID; id += 4)
+	//{
+	//	// 尝试使用 pid 找到相应的 EOROCESS 结构体，如果找到就输出信息
+	//	if (NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(id), &Process)))
+	//	{
+	//		PPID = (ULONG*)((char*)Process + 0x140);
+	//		pDbg = (ULONG*)((char*)Process + 0x0ec);
+	//		// 通过 windows 提供的内置函数获取名称
+	//		KdPrint(("[%lu][%04lu][%04lu][P]DBG[%lu]EPS[%p]: %s\n", ++uid, id, *PPID,
+	//			*pDbg, Process, PsGetProcessImageFileName(Process)));
+
+	//		// 如果操作使指针引用计数 +1 了，那么就需要 -1
+	//		ObDereferenceObject(Process);
+	//	}
+	//}
+	return count;
 }

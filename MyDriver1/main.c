@@ -94,8 +94,11 @@ NTSTATUS ReadDispath(
 	ULONG* Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
 	Irp->IoStatus.Information = 0;
 	//DbgBreakPoint();
+
+	// 判断分页大小
 	if (Buffer  && *Buffer == 4096)
 	{
+		// 分发数据包，用于发送不同数据包给R3
 		Irp->IoStatus.Information = ReadDisp((LPCH)(Buffer + 4), (LPMyInfoSend)Buffer);
 		//RtlCopyMemory(Buffer + 4, "hello", 6);
 	}
@@ -123,6 +126,8 @@ NTSTATUS WriteDispath(
 	KdPrint(("R3写入了: %s\n", Buffer));
 
 	// 将实际的操作数量，返回给 R3，由 ReadFile 的第 4 个参数接受
+	
+	// 读取数据，分发不同函数，用于读取R3指令
 	Irp->IoStatus.Information = WriteDisp(Buffer);
 
 	UNREFERENCED_PARAMETER(DeviceOBject);
