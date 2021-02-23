@@ -1,9 +1,8 @@
-#include <ntddk.h>
+#include "CDisp.h"
 
 #define DEVICE_NAME L"\\Device\\MyDevice"
 #define SYMBOLICLINE_NAME L"\\??\\MyTestDriver"
 //ring3用CreateFile打开设备时,用"\\\\.\\MyTestDriver"//相当于起的别名
-
 
 
 // 创建一个设备对象，接受的参数是 DriverEntry 传入的驱动对象
@@ -92,12 +91,14 @@ NTSTATUS ReadDispath(
 
 	// 如果使用的是 DIRECT 方式，那么系统会给我们提供一个绑定到用户缓冲区的
 	//	MDL，通过 MmGetSystemAddressForMdlSafe 进行映射
-	PVOID Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-	RtlCopyMemory(Buffer, "hello", 6);
-
-	// 将实际的操作数量，返回给 R3，由 ReadFile 的第 4 个参数接受
-	Irp->IoStatus.Information = 20;
-
+	ULONG* Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
+	Irp->IoStatus.Information = 0;
+	//DbgBreakPoint();
+	if (Buffer  && *Buffer == 4096)
+	{
+		Irp->IoStatus.Information = ReadDisp((LPCH)(Buffer + 4), (LPMyInfoSend)Buffer);
+		//RtlCopyMemory(Buffer + 4, "hello", 6);
+	}
 	UNREFERENCED_PARAMETER(DeviceOBject);
 	Irp->IoStatus.Status = STATUS_SUCCESS;
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
@@ -114,15 +115,15 @@ NTSTATUS WriteDispath(
 	PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
 	// Irp 栈中保存了从用户层传递进来的一些信息，这里是 R3 想写入的长度
-	KdPrint(("Length: %d\n", IrpStack->Parameters.Write.Length));
+	KdPrint(("\nLength: %d\n", IrpStack->Parameters.Write.Length));
 
 	// 如果使用的是 DIRECT 方式，那么系统会给我们提供一个绑定到用户缓冲区的
 	//	MDL，通过 MmGetSystemAddressForMdlSafe 进行映射
 	char* Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-	KdPrint(("R3写入了: %s\n", (char*)Buffer));
+	KdPrint(("R3写入了: %s\n", Buffer));
 
 	// 将实际的操作数量，返回给 R3，由 ReadFile 的第 4 个参数接受
-	Irp->IoStatus.Information = 66;
+	Irp->IoStatus.Information = WriteDisp(Buffer);
 
 	UNREFERENCED_PARAMETER(DeviceOBject);
 	Irp->IoStatus.Status = STATUS_SUCCESS;

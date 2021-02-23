@@ -1,0 +1,69 @@
+#include "CDisp.h"
+
+
+
+// 函数有导出，但是没有声明，需要自己提供
+NTKERNELAPI UCHAR* PsGetProcessImageFileName(__in PEPROCESS Process);
+
+VOID ListCurrentProcessAndThread()
+{
+	// 提供一个 EPROCESS 的指针，用于接受查询到的内容
+	//PETHREAD Thread = NULL;
+	PEPROCESS Process = NULL;
+
+	// 提供一个用于遍历的范围，以 4 为递增值，暴力遍历所有的进程，由于
+	//	进程和线程被放置在了同一个位置，所以两者的 id 是处于同意序列的
+	for (ULONG uid = 0, id = 0, *PPID, *pDbg; id <= 5000; id += 4)
+	{
+		// 尝试使用 pid 找到相应的 EOROCESS 结构体，如果找到就输出信息
+		if (NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(id), &Process)))
+		{
+			PPID = (ULONG*)((char*)Process + 0x140);
+			pDbg = (ULONG*)((char*)Process + 0x0ec);
+			// 通过 windows 提供的内置函数获取名称
+			KdPrint(("[%lu][%04lu][%04lu][P]DBG[%lu]EPS[%p]: %s\n", ++uid, id, *PPID,
+				*pDbg, Process, PsGetProcessImageFileName(Process)));
+
+			// 如果操作使指针引用计数 +1 了，那么就需要 -1
+			ObDereferenceObject(Process);
+		}
+
+		// 如果不是进程，还有可能是线程，再进行一次判断
+		//else if (NT_SUCCESS(PsLookupThreadByThreadId(ULongToHandle(id), &Thread)))
+		//{
+		//	// 通过函数函数获取当前线程的所属进程
+		//	PEPROCESS Process2 = IoThreadToProcess(Thread);
+		//	KdPrint(("[%d][T]:%d\n", id, PsGetProcessId(Process2)));
+
+		//	// 操作完毕以后，需要手动的减少引用计数
+		//	ObDereferenceObject(Thread);
+		//}
+
+	}
+}
+
+
+
+ULONG_PTR WriteDisp(LPCH FunName)
+{
+	ULONG_PTR uRet = 0;
+	if (10 == (uRet = RtlCompareMemory(FunName, "InitDevice", 10)))
+	{
+		KdPrint(("比较: %s %s %lu->初始化环境\n", FunName, "InitDevice", uRet));
+		ListCurrentProcessAndThread();
+	}
+	return uRet;
+}
+
+
+ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
+{
+	ULONG_PTR uRet = RtlCompareMemory(FunName, "GetPIDs", 8);
+	if (8 == uRet)
+	{
+		KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
+		pInfo->ulNum1 = 1;
+		return 4096;
+	}
+	return uRet;
+}

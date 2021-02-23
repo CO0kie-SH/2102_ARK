@@ -9,5 +9,6 @@ int main()
     std::cout << "Hello World!\n";
     printf("size=%d\n", sizeof(MyInfoSend));
     CDevice cDevice;
+    cDevice.Test();
     system("pause");
 }
