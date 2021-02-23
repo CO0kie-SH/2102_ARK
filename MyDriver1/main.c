@@ -1,5 +1,11 @@
 #include <ntddk.h>
 
+#define DEVICE_NAME L"\\Device\\MyDevice"
+#define SYMBOLICLINE_NAME L"\\??\\MyTestDriver"
+//ring3用CreateFile打开设备时,用"\\\\.\\MyTestDriver"//相当于起的别名
+
+
+
 // 创建一个设备对象，接受的参数是 DriverEntry 传入的驱动对象
 NTSTATUS CreateDevice(PDRIVER_OBJECT DriverObject)
 {
@@ -13,7 +19,7 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT DriverObject)
 
 	// 初始化设备对象的名称，要求格式必须是 \\Device\\xxx 的形式
 	UNICODE_STRING DeviceName = { 0 };
-	RtlInitUnicodeString(&DeviceName, L"\\Device\\.min");
+	RtlInitUnicodeString(&DeviceName, DEVICE_NAME);
 
 	// 创建设备对象使用 IoCreateDevice，如果成功返回 STATUS_SUCCESS
 	Status = IoCreateDevice(
@@ -35,7 +41,7 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT DriverObject)
 	// 设备对象的名称只能在内核中被直接的解析，为了 R3 能够识别并操作设备对象，需要
 	//	创建与设备名称直接关联的符号链接名，必须写作: \\DosDevices\\xxx 或 \\??\\xxx
 	UNICODE_STRING SymLinkName = { 0 };
-	RtlInitUnicodeString(&SymLinkName, L"\\??\\.min");
+	RtlInitUnicodeString(&SymLinkName, SYMBOLICLINE_NAME);
 	Status = IoCreateSymbolicLink(&SymLinkName, &DeviceName);
 
 	// 通过 NT_SUCCESS 判断函数的调用是否成功
@@ -49,7 +55,6 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT DriverObject)
 	// 设置设备对象的读写方式为缓冲区方式
 	DeviceObject->Flags |= DO_DIRECT_IO;
 
-	KdPrint(("设备对象创建(%08X)(%wZ)\n", Status, SymLinkName));
 	return Status;
 }
 
@@ -137,7 +142,7 @@ VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 
 	// 删除符号链接名
 	UNICODE_STRING SymLinkName = { 0 };
-	RtlInitUnicodeString(&SymLinkName, L"\\??\\.min");
+	RtlInitUnicodeString(&SymLinkName, SYMBOLICLINE_NAME);
 	IoDeleteSymbolicLink(&SymLinkName);
 
 	// 删除设备对象，如果有多个，需要遍历设备对象表
@@ -165,6 +170,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
 	// 创建一个设备对象，如果失败则返回错误码
 	NTSTATUS Status = CreateDevice(DriverObject);
+	KdPrint(("设备对象创建(%S)\n", SYMBOLICLINE_NAME));
 
 	// 如果返回的不是 STATUS_SUCESS，驱动会安装失败，意味着 DriverUnload 不会调用
 	return Status;

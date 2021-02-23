@@ -4,12 +4,10 @@
 #include <iostream>
 #include "CDevice.h"
 
-
-
-
 int main()
 {
     std::cout << "Hello World!\n";
+    printf("size=%d\n", sizeof(MyInfoSend));
     CDevice cDevice;
     system("pause");
 }

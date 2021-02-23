@@ -6,7 +6,7 @@ CDevice::CDevice() :DeviceHandle(0)
 	DWORD Bytes = 0;
 
 	// 可以使用 CreateFile 去打开一个设备对象，要求管理员权限
-	DeviceHandle = CreateFile(L"\\\\.\\.min", GENERIC_ALL,
+	DeviceHandle = CreateFile(SYMBOLICLINE_NAME, GENERIC_ALL,
 		NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	printf("打开设备对象(%p)",DeviceHandle);
 	if (DeviceHandle == INVALID_HANDLE_VALUE)
@@ -15,8 +15,8 @@ CDevice::CDevice() :DeviceHandle(0)
 		return;
 	}
 	// 向设备对象写入数据
-	WriteFile(DeviceHandle, "123456 r3", 10, &Bytes, NULL);
-	printf("WriteFile(10) > Bytes[%d]\n", Bytes);
+	WriteFile(DeviceHandle, "InitDevice", 10, &Bytes, NULL);
+	printf("\nWriteFile(10) > Bytes[%d]\n", Bytes);
 }
 
 CDevice::~CDevice()
