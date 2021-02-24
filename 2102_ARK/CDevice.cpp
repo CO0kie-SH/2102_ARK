@@ -17,12 +17,13 @@ CDevice::CDevice() :pMem(0)
 	}
 	printf("成功。\n");
 	// 向设备对象写入数据
-	//WriteFile(DeviceHandle, "InitDevice", 10, &Bytes, NULL);
-	//printf("\nWriteFile(10) > Bytes[%d]\n", Bytes);
+	WriteFile(DeviceHandle, "InitDevice", 10, &Bytes, NULL);
+	printf("\nWriteFile(10) > Bytes[%d]\n", Bytes);
 
 	this->pMem = (LPCH)VirtualAlloc(NULL, sizeof(MyInfoSend), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (pMem == NULL)	ExitProcess(2);
-	GetPIDs();
+	this->GetPIDs();
+	this->GetSyss();
 }
 
 CDevice::~CDevice()
@@ -56,6 +57,7 @@ void CDevice::Test()
 	Bytes = 1;
 }
 
+
 void CDevice::GetPIDs()
 {
 	ULONG Bytes = 0;
@@ -77,7 +79,7 @@ void CDevice::GetPIDs()
 	{
 		mProcess.push_back({ pPro[i].tPID,pPro[i].pPID });
 	}
-	GetMods(Bytes, pInfo);
+	//GetMods(Bytes, pInfo);
 	//GetThId(Bytes, pInfo);
 }
 
@@ -105,7 +107,7 @@ void CDevice::GetMods(DWORD Num, LPMyInfoSend pInfo)
 			}
 			else if (ulRet == 0)	//尾部结束
 			{
-				printf("尾部结束。\n");
+				printf("模块尾部结束。共有模块数[%lu]。\n", count);
 				break;
 			}
 			printf("%lu [%08lX][%p] ->%S\n", ++count,
@@ -135,7 +137,7 @@ void CDevice::GetThId(DWORD Num, LPMyInfoSend pInfo)
 		}
 		else if (ulRet == 0)	//尾部结束
 		{
-			printf("尾部结束。共有线程数[%lu]。\n", ths);
+			printf("线程尾部结束。共有线程数[%lu]。\n", ths);
 			break;
 		}
 		printf("%3lu [%6lu][%6lu][%6lu]->%p\n", ++ths,
@@ -144,7 +146,6 @@ void CDevice::GetThId(DWORD Num, LPMyInfoSend pInfo)
 		pInfo->ulNum2 = ulRet;
 	}
 
-	
 
 	for (ULONG i = 0; i < Num; i++)
 	{
@@ -160,5 +161,32 @@ void CDevice::GetThId(DWORD Num, LPMyInfoSend pInfo)
 			}
 		}
 		printf("\n");
+	}
+}
+
+void CDevice::GetSyss()
+{
+	ULONG ulRet = 0, count = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetSyss");
+
+	while (true)
+	{
+		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+		{
+			printf("读取模块失败\n");
+			return;
+		}
+		else if (ulRet == 0)	//尾部结束
+		{
+			printf("驱动尾部结束。共有驱动数[%lu]。\n", count);
+			break;
+		}
+		printf("%3lu [%lX][%p][%2d]%20S %S\n", ++count, ulRet, (PCH)pInfo->ulNum2,
+			pInfo->ulNum1, (PWCH)pInfo->byBuf2, (PWCH)pInfo->byBuf3);
+		pInfo->ulNum1 = ulRet;
 	}
 }

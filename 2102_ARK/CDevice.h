@@ -57,6 +57,7 @@ public:
 	~CDevice();
 
 	void Test();
+	void GetSyss();
 	void GetPIDs();
 	void GetThId(DWORD Num, LPMyInfoSend pInfo);
 	void GetMods(DWORD Num, LPMyInfoSend pInfo);

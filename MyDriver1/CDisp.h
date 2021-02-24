@@ -155,8 +155,22 @@ typedef struct _PEB_EX {
 	ULONG SessionId;
 } PEB_EX, * PPEB_EX;
 
+// LDR 链表中的每一项都是这个结构体，保存了驱动的基本信息
+typedef struct _LDR_DATA_TABLE_ENTRY
+{
+	struct _LIST_ENTRY InLoadOrderLinks;                                    //0x0
+	struct _LIST_ENTRY InMemoryOrderLinks;                                  //0x8
+	struct _LIST_ENTRY InInitializationOrderLinks;                          //0x10
+	VOID* DllBase;                                                          //0x18
+	VOID* EntryPoint;                                                       //0x1c
+	ULONG SizeOfImage;                                                      //0x20
+	struct _UNICODE_STRING FullDllName;                                     //0x24
+	struct _UNICODE_STRING BaseDllName;                                     //0x2c
+	// ... 后面还有一些字段，由于用不到，为了节省代码量，直接不考虑
+} *PLDR_DATA_TABLE_ENTRY;
 
 NTKERNELAPI PPEB_EX PsGetProcessPeb(PEPROCESS Process);
+
 
 
 // 接受R3指令分发
@@ -170,6 +184,9 @@ ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID);
 ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID);
 // 遍历模块
 ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo);
+// 遍历驱动
+ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo);
 
-
+extern PDRIVER_OBJECT gDriverObject;
+extern PVOID gSysFirst;
 

@@ -124,7 +124,7 @@ NTSTATUS WriteDispath(
 	// 如果使用的是 DIRECT 方式，那么系统会给我们提供一个绑定到用户缓冲区的
 	//	MDL，通过 MmGetSystemAddressForMdlSafe 进行映射
 	char* Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority);
-	KdPrint(("R3写入了: %s\n", Buffer));
+	//KdPrint(("R3写入了: %s\n", Buffer));
 
 	// 将实际的操作数量，返回给 R3，由 ReadFile 的第 4 个参数接受
 	
@@ -164,8 +164,26 @@ VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
+	gDriverObject = DriverObject;
 	DriverObject->DriverUnload = DriverUnload;
-	KdPrint(("\n驱动创建(%p)\n", DriverObject));
+	//KdPrint(("\n驱动创建(%p)\n", DriverObject));
+
+	PLDR_DATA_TABLE_ENTRY current = gDriverObject->DriverSection;
+	PLDR_DATA_TABLE_ENTRY item = gDriverObject->DriverSection;
+	do {
+		// 输出元素的基本信息
+		//KdPrint(("%d: %lu %wZ %wZ\n", index++, (ULONG)item->BaseDllName.Length,
+		//	&item->BaseDllName, &item->FullDllName));
+		if (item->BaseDllName.Length == 0)
+		{
+			gSysFirst = item;
+			KdPrint(("头驱动节点[%p]本驱动[%p]\n", item, DriverObject));
+			break;
+		}
+		// 获取遍历到的元素的下一个元素
+		item = (PLDR_DATA_TABLE_ENTRY)item->InLoadOrderLinks.Flink;
+	} while (current != item);
+
 
 	// 为当前驱动下的所有设备对象，设置消息响应函数
 	for (int i = 0; i < 28; ++i)

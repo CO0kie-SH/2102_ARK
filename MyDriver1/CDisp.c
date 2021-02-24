@@ -1,7 +1,7 @@
 #include "CDisp.h"
 
 
-
+/*
 // 函数有导出，但是没有声明，需要自己提供
 NTKERNELAPI UCHAR* PsGetProcessImageFileName(__in PEPROCESS Process);
 
@@ -41,8 +41,10 @@ VOID ListCurrentProcessAndThread()
 
 	}
 }
+*/
 
-
+PDRIVER_OBJECT gDriverObject = 0;
+PVOID gSysFirst = 0;
 
 ULONG_PTR WriteDisp(LPCH FunName)
 {
@@ -50,7 +52,10 @@ ULONG_PTR WriteDisp(LPCH FunName)
 	if (10 == (uRet = RtlCompareMemory(FunName, "InitDevice", 10)))
 	{
 		KdPrint(("比较: %s %s %lu->初始化环境\n", FunName, "InitDevice", uRet));
-		ListCurrentProcessAndThread();
+		//ListCurrentProcessAndThread();
+		// 摘链
+		//current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
+		//current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
 	}
 	return uRet;
 }
@@ -58,7 +63,7 @@ ULONG_PTR WriteDisp(LPCH FunName)
 
 ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 {
-	ULONG_PTR uRet = RtlCompareMemory(FunName, "GetPIDs", 8);
+	ULONG_PTR uRet = 0;
 	if (8 == (uRet = RtlCompareMemory(FunName, "GetPIDs", 8)))
 	{
 		KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
@@ -75,13 +80,19 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		//KdPrint(("比较: %s %s %lu->遍历模块\n", FunName, "GetMods", uRet));
 		return GetMods(pInfo->ulBuff, pInfo->ulNum1, pInfo->ulNum2, pInfo);
 	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetSyss", 8)))
+	{
+		//KdPrint(("比较: %s %s %lu->遍历驱动\n", FunName, "GetSyss", uRet));
+		return GetSyss(pInfo->ulBuff, pInfo->ulNum1, pInfo);
+	}
+	KdPrint(("比较: %s %p %lu->没有对应\n", FunName, pInfo, uRet));
 	return 0;
 }
 
 ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID)
 {
 	PEPROCESS Process = NULL;
-	KdPrint(("[%lu][%04lu][%p]\n", MaxBuff, MaxPID, (char*)pPID));
+	//KdPrint(("[%lu][%04lu][%p]\n", MaxBuff, MaxPID, (char*)pPID));
 	ULONG count = 0, tid = 4, maxID = MaxBuff / 4 / 2;
 	while (tid <= MaxPID && count <= maxID)
 	{
@@ -125,7 +136,6 @@ ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID)
 	return 0;
 }
 
-
 ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 {
 	UNREFERENCED_PARAMETER(MaxBuff);
@@ -147,8 +157,6 @@ ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 	ULONG uRet = 0;
 	KAPC_STATE ks;
 	KeStackAttachProcess(Process, &ks);
-
-
 	__try
 	{
 		PPEB_LDR_DATA_EX peb_LDR_data = (PPEB_LDR_DATA_EX)peb->Ldr;
@@ -178,4 +186,38 @@ ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 	}
 	KeUnstackDetachProcess(&ks);
 	return uRet;
+}
+
+ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo)
+{
+	UNREFERENCED_PARAMETER(MaxBuff);
+	ULONG uRet = 0;
+	PLDR_DATA_TABLE_ENTRY first = gSysFirst, next = List
+		? (PLDR_DATA_TABLE_ENTRY)List
+		: (PLDR_DATA_TABLE_ENTRY)first->InLoadOrderLinks.Flink;
+	//do {
+	//	// 输出元素的基本信息
+	//	//KdPrint(("%d: %lu %wZ %wZ\n", ++index, (ULONG)next->BaseDllName.Length,
+	//	//	&next->BaseDllName, &next->FullDllName));
+	//} while (first != next);
+
+	uRet = next->BaseDllName.Length;
+	if (uRet == 0)	return 0;
+	pInfo->ulNum1 = uRet;
+	pInfo->ulNum2 = (ULONG)next->DllBase;
+	pInfo->byBuf2[uRet] = 0x0;
+	RtlCopyMemory(
+		pInfo->byBuf2,
+		next->BaseDllName.Buffer,
+		uRet
+	);
+	pInfo->byBuf3[next->FullDllName.Length] = 0x0;
+	RtlCopyMemory(
+		pInfo->byBuf3,
+		next->FullDllName.Buffer,
+		next->FullDllName.Length
+	);
+	// 获取遍历到的元素的下一个元素
+	next = (PLDR_DATA_TABLE_ENTRY)next->InLoadOrderLinks.Flink;
+	return (ULONG)next;
 }
