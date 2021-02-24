@@ -46,6 +46,23 @@ typedef struct _MyProcess2
 	vector<MyThread> vTHs;	//线程数组
 }MyProcess2, * LPMyProcess2;
 
+typedef struct _FILE_BOTH_DIR_INFORMATION {
+	ULONG NextEntryOffset;
+	ULONG FileIndex;
+	LARGE_INTEGER CreationTime;
+	LARGE_INTEGER LastAccessTime;
+	LARGE_INTEGER LastWriteTime;
+	LARGE_INTEGER ChangeTime;
+	LARGE_INTEGER EndOfFile;
+	LARGE_INTEGER AllocationSize;
+	ULONG FileAttributes;
+	ULONG FileNameLength;
+	ULONG EaSize;
+	CCHAR ShortNameLength;
+	WCHAR ShortName[12];
+	_Field_size_bytes_(FileNameLength) WCHAR FileName[1];
+} FILE_BOTH_DIR_INFORMATION, * PFILE_BOTH_DIR_INFORMATION;
+
 #define DEVICE_NAME L"\\Device\\MyDevice"
 #define SYMBOLICLINE_NAME L"\\\\.\\MyTestDriver"
 //ring3用CreateFile打开设备时,用"\\\\.\\MyTestDriver"//相当于起的别名
@@ -61,7 +78,7 @@ public:
 	void GetPIDs();
 	void GetThId(DWORD Num, LPMyInfoSend pInfo);
 	void GetMods(DWORD Num, LPMyInfoSend pInfo);
-	void EnumFiles();
+	void EnumPath();
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;

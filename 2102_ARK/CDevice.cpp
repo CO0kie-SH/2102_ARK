@@ -24,7 +24,7 @@ CDevice::CDevice() :pMem(0)
 	if (pMem == NULL)	ExitProcess(2);
 	//this->GetPIDs();
 	//this->GetSyss();
-	this->EnumFiles();
+	this->EnumPath();
 }
 
 CDevice::~CDevice()
@@ -171,7 +171,31 @@ void CDevice::GetSyss()
 	}
 }
 
-void CDevice::EnumFiles()
+void CDevice::EnumPath()
 {
+	ULONG ulRet = 0, count = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pDir = (PFILE_BOTH_DIR_INFORMATION)pInfo->byBuf3;
+	ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetPath");
+	wsprintfW((LPWSTR)pInfo->byBuf2, L"%s", L"\\??\\D:\\Lucy");
 
+	while (true)
+	{
+		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+		{
+			printf("读取目录失败\n");
+			return;
+		}
+		else if (ulRet == 0)	//尾部结束
+		{
+			printf("目录尾部结束。共有目录数[%lu]。\n", pInfo->ulNum1);
+			break;
+		}
+		printf("%lu [%lX]->", ulRet, pInfo->ulNum2);
+		wprintf(L"%s\n", pDir->FileName);
+		ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
+	}
 }

@@ -172,8 +172,6 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 
 NTKERNELAPI PPEB_EX PsGetProcessPeb(PEPROCESS Process);
 
-
-
 // 接受R3指令分发
 ULONG_PTR WriteDisp(LPCH FunName);
 // 向R3发送数据包
@@ -187,6 +185,8 @@ ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID);
 ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo);
 // 遍历驱动
 ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo);
+// 遍历文件
+ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;

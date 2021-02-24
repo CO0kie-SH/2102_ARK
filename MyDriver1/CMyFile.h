@@ -2,8 +2,6 @@
 #include <ntifs.h>
 #include <ntddk.h>
 
-
-
 // 使用指定的方式创建或打开一个指定的文件或目录
 HANDLE CreateFile(LPCWSTR pFilePath, ACCESS_MASK Access, BOOLEAN IsFile);
 
@@ -18,8 +16,3 @@ NTSTATUS ReadFile(HANDLE FileHandle, PVOID Buffer, ULONG Length, ULONG pOffset);
 
 // 删除文件，不需要指定文件句柄
 NTSTATUS DeleteFile(LPCWSTR pFilePath);
-
-BOOLEAN EnumPath(LPCWSTR DirPath);
-
-
-BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath);

@@ -121,68 +121,9 @@ NTSTATUS DeleteFile(LPCWSTR pFilePath)
 	return ZwDeleteFile(&ObjectAttributes);
 }
 
-BOOLEAN EnumPath(LPCWSTR DirPath)
-{
-	HANDLE hFile = NULL;
-	//OBJECT_ATTRIBUTES objectAttributes = { 0 };
-	IO_STATUS_BLOCK iosb = { 0 };
-	NTSTATUS status = STATUS_SUCCESS;
-
-	hFile = CreateFile(DirPath, GENERIC_ALL, FALSE);
-	if (hFile == (HANDLE)-1)	return 0;
-	// 遍历文件
-	// 注意此处的大小!!!一定要申请足够内存，否则后面ExFreePool会蓝屏
-	ULONG ulLength = (2 * 4096 + sizeof(FILE_BOTH_DIR_INFORMATION)) * 0x2000;
-	PFILE_BOTH_DIR_INFORMATION pDir = ExAllocatePoolZero(PagedPool, ulLength, 'elif'),
-		pBeginAddr = pDir;
-	if (!pDir)	return 0;
-
-	status = ZwQueryDirectoryFile(hFile, NULL, NULL, NULL, &iosb, pDir, ulLength,
-		FileBothDirectoryInformation, FALSE, NULL, FALSE);
-	if (!NT_SUCCESS(status))
-	{
-		ExFreePool(pDir);
-		ZwClose(hFile);
-		KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
-		return FALSE;
-	}
-	WCHAR wcFileName[1024] = { 0 };
-
-	// 遍历
-	UNICODE_STRING ustrTemp;
-	while (TRUE)
-	{
-		// 判断是否是上级目录或是本目录
-		RtlZeroMemory(wcFileName, 1024);
-		RtlCopyMemory(wcFileName, pDir->FileName, pDir->FileNameLength);
-		RtlInitUnicodeString(&ustrTemp, wcFileName);
-		if (1)
-		{
-			if (pDir->FileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				// 目录
-				KdPrint(("[DIRECTORY]\t%wZ\n", &ustrTemp));
-			}
-			else
-			{
-				// 文件
-				KdPrint(("[FILE]\t\t%wZ\n", &ustrTemp));
-			}
-		}
-		// 遍历完毕
-		if (0 == pDir->NextEntryOffset)
-		{
-			KdPrint(("\n[QUERY OVER]\n\n"));
-			break;
-		}
-		// pDir指向的地址改变了，所以下面ExFreePool(pDir)会出错！！！所以，必须保存首地址
-		pDir = (PFILE_BOTH_DIR_INFORMATION)((PUCHAR)pDir + pDir->NextEntryOffset);
-	}
-	ExFreePoolWithTag(pBeginAddr, 'elif');
-	ZwClose(hFile);
-	return TRUE;
-}
-
+/*
+	内核的枚举文件_pipixia233333的博客-CSDN博客
+	https://blog.csdn.net/qq_41071646/article/details/86384279
 
 BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath)
 {
@@ -199,7 +140,7 @@ BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath)
 		NULL, 0);
 	if (!NT_SUCCESS(status))
 	{
-		KdPrint(("ZwCreateFile", status));
+		KdPrint(("ZwCreateFile[ERROR][%u]", status));
 		return FALSE;
 	}
 
@@ -214,9 +155,9 @@ BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath)
 		FileBothDirectoryInformation, FALSE, NULL, FALSE);
 	if (!NT_SUCCESS(status))
 	{
-		ExFreePool(pDir);
+		ExFreePoolWithTag(pBeginAddr, 'elif');
 		ZwClose(hFile);
-		KdPrint(("ZwQueryDirectoryFile", status));
+		KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
 		return FALSE;
 	}
 	// 遍历
@@ -261,3 +202,4 @@ BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath)
 
 	return TRUE;
 }
+*/

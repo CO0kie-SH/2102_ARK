@@ -74,9 +74,10 @@ ULONG_PTR WriteDisp(LPCH FunName)
 		//KdPrint(("读取文件[%p]->[%lld]\n%s\n删除文件[%u]\n", 
 		//	FileHandle, FileSize, Buff,
 		//	DeleteFile(Path)));
-		UNICODE_STRING ustrQueryFile;
-		RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
-		MyQueryFileAndFileFolder(ustrQueryFile);
+		//UNICODE_STRING ustrQueryFile;
+		//RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
+		//MyQueryFileAndFileFolder(ustrQueryFile);
+		
 	}
 	return uRet;
 }
@@ -106,7 +107,13 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		//KdPrint(("比较: %s %s %lu->遍历驱动\n", FunName, "GetSyss", uRet));
 		return GetSyss(pInfo->ulBuff, pInfo->ulNum1, pInfo);
 	}
-	KdPrint(("比较: %s %p %lu->没有对应\n", FunName, pInfo, uRet));
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetPath", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->遍历目录\n", FunName, "GetPath", uRet));
+		return GetPath(pInfo->ulBuff, pInfo->ulNum1,
+			(PIO_STATUS_BLOCK)pInfo->byBuf2, pInfo);
+	}
+	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
 }
 
@@ -241,4 +248,63 @@ ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo)
 	// 获取遍历到的元素的下一个元素
 	next = (PLDR_DATA_TABLE_ENTRY)next->InLoadOrderLinks.Flink;
 	return (ULONG)next;
+}
+
+ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, LPMyInfoSend pInfo)
+{
+	HANDLE hFile = (HANDLE)pInfo->ulNum2;
+	PFILE_BOTH_DIR_INFORMATION pDir = (PFILE_BOTH_DIR_INFORMATION)pInfo->byBuf3;
+	NTSTATUS status;
+	if (hFile == 0)
+	{
+		UNICODE_STRING ustrPath;
+		RtlInitUnicodeString(&ustrPath, (PCWCHAR)pInfo->byBuf2);
+		OBJECT_ATTRIBUTES objectAttributes = { 0 };
+		InitializeObjectAttributes(&objectAttributes, &ustrPath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+		status = ZwCreateFile(&hFile, FILE_LIST_DIRECTORY | SYNCHRONIZE | FILE_ANY_ACCESS,
+			&objectAttributes, pIoStatusBlock, NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE,
+			FILE_OPEN, FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT,
+			NULL, 0);
+		if (NT_SUCCESS(status))
+		{
+			//初始化变量
+			pInfo->ulNum2 = (ULONG)hFile;
+			RtlZeroMemory(pIoStatusBlock, sizeof(IO_STATUS_BLOCK));
+			KdPrint(("%d: 初次目录句柄%lX\n", Count, pInfo->ulNum2));
+			// 获取信息
+			status = ZwQueryDirectoryFile(hFile, NULL, NULL, NULL, pIoStatusBlock, pDir, MaxBuff,
+				FileBothDirectoryInformation, TRUE, NULL, TRUE);
+			if (!NT_SUCCESS(status))
+			{
+				ZwClose(hFile);
+				KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
+				return 0;
+			}
+			pInfo->ulNum1 = ++Count;
+			KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
+			return pInfo->ulNum1;
+		}
+	}
+	else
+	{
+		KdPrint(("%d: 多次目录句柄%lX\n", Count, pInfo->ulNum2));
+		// 遍历指定目录下的第一个文件，并返回遍历到的结果
+		status = ZwQueryDirectoryFile(hFile, NULL, NULL, NULL, pIoStatusBlock, pDir, MaxBuff,
+			FileBothDirectoryInformation, TRUE, NULL, FALSE);
+		if (!NT_SUCCESS(status))
+		{
+			ZwClose(hFile);
+			KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
+			return 0;
+		}
+		KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
+		// 结束条件的判断是 IoStatusBlock 而不是函数的返回值
+		if (pIoStatusBlock->Status != STATUS_NO_MORE_FILES)
+		{
+			pInfo->ulNum1 = ++Count;
+			return pInfo->ulNum1;
+		}
+	}
+	ZwClose(hFile);
+	return 0;
 }
