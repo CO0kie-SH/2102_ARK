@@ -73,7 +73,7 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetMods", 8)))
 	{
 		//KdPrint(("比较: %s %s %lu->遍历模块\n", FunName, "GetMods", uRet));
-		return GetMods(pInfo->ulBuff, pInfo->ulNum1, (LPMyProcess)pInfo->byBuf3);
+		return GetMods(pInfo->ulBuff, pInfo->ulNum1, pInfo->ulNum2, pInfo);
 	}
 	return 0;
 }
@@ -94,25 +94,6 @@ ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID)
 		}
 		tid += 4;
 	}
-
-
-	// 提供一个用于遍历的范围，以 4 为递增值，暴力遍历所有的进程，由于
-	//	进程和线程被放置在了同一个位置，所以两者的 id 是处于同意序列的
-	//for (, *PPID, *pDbg; id <= MaxPID; id += 4)
-	//{
-	//	// 尝试使用 pid 找到相应的 EOROCESS 结构体，如果找到就输出信息
-	//	if (NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(id), &Process)))
-	//	{
-	//		PPID = (ULONG*)((char*)Process + 0x140);
-	//		pDbg = (ULONG*)((char*)Process + 0x0ec);
-	//		// 通过 windows 提供的内置函数获取名称
-	//		KdPrint(("[%lu][%04lu][%04lu][P]DBG[%lu]EPS[%p]: %s\n", ++uid, id, *PPID,
-	//			*pDbg, Process, PsGetProcessImageFileName(Process)));
-
-	//		// 如果操作使指针引用计数 +1 了，那么就需要 -1
-	//		ObDereferenceObject(Process);
-	//	}
-	//}
 	return count;
 }
 
@@ -145,8 +126,56 @@ ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID)
 }
 
 
-ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, LPMyProcess pPID)
+ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 {
-	KdPrint(("比较: %lu %lu %p->遍历模块\n", MaxBuff, PID, pPID));
-	return 0;
+	UNREFERENCED_PARAMETER(MaxBuff);
+	PEPROCESS Process = NULL;
+	if (!NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(PID), &Process)))
+	{
+		KdPrint(("无法获取EPROCESS[%lu]！\n", PID));
+		return 0;
+	}
+
+	//获取 PEB信息
+	PPEB_EX peb = PsGetProcessPeb(Process);
+	if (!peb)
+	{
+		KdPrint(("无法获取peb[%lu][%p]！\n", PID, Process));
+		return 0;
+	}
+	//KdPrint(("peb[%lu][%p]！\n", PID, peb));
+	ULONG uRet = 0;
+	KAPC_STATE ks;
+	KeStackAttachProcess(Process, &ks);
+
+
+	__try
+	{
+		PPEB_LDR_DATA_EX peb_LDR_data = (PPEB_LDR_DATA_EX)peb->Ldr;
+		PLIST_ENTRY list_entry = &peb_LDR_data->InLoadOrderModuleList;
+		//先获取第一个
+		PLIST_ENTRY currentList = List ? (PLIST_ENTRY)List : list_entry->Flink;
+		while (currentList != list_entry)
+		{
+			PLDR_DATA_TABLE_ENTRY_EX ldr_data_table_entry =
+				(PLDR_DATA_TABLE_ENTRY_EX)currentList;
+
+			uRet = ldr_data_table_entry->FullDllName.Length;
+			pInfo->ulNum2 = (ULONG)ldr_data_table_entry->DllBase;
+			RtlCopyMemory(
+				pInfo->byBuf3,
+				ldr_data_table_entry->FullDllName.Buffer,
+				uRet
+			);
+			pInfo->byBuf3[uRet] = 0x0;
+			uRet = (ULONG)currentList->Flink;
+			break;
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		//DbgPrint("Can not Modules...");
+	}
+	KeUnstackDetachProcess(&ks);
+	return uRet;
 }

@@ -77,13 +77,47 @@ void CDevice::GetPIDs()
 	{
 		mProcess.push_back({ pPro[i].tPID,pPro[i].pPID });
 	}
-	ShowPID(Bytes);
+	GetMods(Bytes, pInfo);
+	//GetThId(Bytes, pInfo);
 }
 
-void CDevice::ShowPID(DWORD Num)
+void CDevice::GetMods(DWORD Num, LPMyInfoSend pInfo)
 {
 	ULONG ulRet = 0, ths = 0;
-	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetMods");
+
+	for (ULONG i = 0, count = 0; i < Num; i++)
+	{
+		MyProcess2& Pro = mProcess[i];
+		printf("进程PID[%06lu]\n", Pro.tPID);
+		if (Pro.tPID != GetCurrentProcessId())
+			continue;
+		pInfo->ulNum1 = Pro.tPID;
+		pInfo->ulNum2 = 0;			//获取的链
+		while (true)
+		{
+			if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+			{
+				printf("读取模块失败\n");
+				return;
+			}
+			else if (ulRet == 0)	//尾部结束
+			{
+				printf("尾部结束。\n");
+				break;
+			}
+			printf("%lu [%08lX][%p] ->%S\n", ++count,
+				pInfo->ulNum2, (PCH)ulRet, (PWCHAR)pInfo->byBuf3);
+			pInfo->ulNum2 = ulRet;
+		}
+	}
+}
+
+void CDevice::GetThId(DWORD Num, LPMyInfoSend pInfo)
+{
+	ULONG ulRet = 0, ths = 0;
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
 	pInfo->ulNum1 = 999999;
@@ -122,34 +156,9 @@ void CDevice::ShowPID(DWORD Num)
 			if (th.PID == PID)
 			{
 				printf("%6lu ", th.TID);
+				Pro.vTHs.push_back(th);
 			}
 		}
 		printf("\n");
-		//auto hProcess = OpenProcess(
-		//	PROCESS_QUERY_INFORMATION,
-		//	FALSE, Pro.tPID);
-		//char filePath[MAX_PATH] = {};
-		//DWORD read = MAX_PATH;
-		//QueryFullProcessImageNameA(hProcess, 0, filePath, &read);
-		//printf("%lu %lu %lu %s\n", i, Pro.tPID, Pro.pPID, filePath);
-		//GetMods(Pro);
-		//CloseHandle(hProcess);
 	}
-}
-
-void CDevice::GetMods(MyProcess2& Info)
-{
-	ULONG Bytes = 0,dwNeedSize = 0;
-	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
-	pInfo->ulSize = 4096;
-	pInfo->ulBuff = 4000;
-	pInfo->ulNum1 = Info.tPID;
-	strcpy_s(pInfo->byBuf1, "GetMods");
-
-	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &Bytes, NULL))
-	{
-		printf("读取模块数失败\n");
-		return;
-	}
-	printf("读取模块数[%d]\n", Bytes);
 }

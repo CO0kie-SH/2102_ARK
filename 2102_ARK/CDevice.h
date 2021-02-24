@@ -58,9 +58,8 @@ public:
 
 	void Test();
 	void GetPIDs();
-	void ShowPID(DWORD Num);
-	void GetMods(MyProcess2& Info);
-	void ShowMod(MyProcess2& Info);
+	void GetThId(DWORD Num, LPMyInfoSend pInfo);
+	void GetMods(DWORD Num, LPMyInfoSend pInfo);
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;
