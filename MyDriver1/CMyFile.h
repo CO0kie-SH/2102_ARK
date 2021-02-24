@@ -18,3 +18,8 @@ NTSTATUS ReadFile(HANDLE FileHandle, PVOID Buffer, ULONG Length, ULONG pOffset);
 
 // 删除文件，不需要指定文件句柄
 NTSTATUS DeleteFile(LPCWSTR pFilePath);
+
+BOOLEAN EnumPath(LPCWSTR DirPath);
+
+
+BOOLEAN MyQueryFileAndFileFolder(UNICODE_STRING ustrPath);
