@@ -1,3 +1,5 @@
+#include <ntifs.h>
+#include <ntddk.h>
 #include "CDisp.h"
 
 #define DEVICE_NAME L"\\Device\\MyDevice"

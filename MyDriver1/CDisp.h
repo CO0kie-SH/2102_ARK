@@ -1,6 +1,7 @@
 #pragma once
 #include <ntifs.h>
 #include <ntddk.h>
+#include "CMyFile.h"
 
 typedef struct _MyInfoSend
 {

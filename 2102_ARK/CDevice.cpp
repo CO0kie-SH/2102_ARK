@@ -35,27 +35,7 @@ CDevice::~CDevice()
 
 void CDevice::Test()
 {
-	ULONG Bytes = 0, dwNeedSize = 0;
-	if (!NT_SUCCESS(ZwQuerySystemInformation(
-		SystemModuleInformation,
-		NULL, 0, &dwNeedSize)))
-	{
-
-	}
-	BYTE* pBuffer = new BYTE[dwNeedSize];
-	if (!NT_SUCCESS(ZwQuerySystemInformation(
-		SystemModuleInformation,
-		(PVOID)pBuffer, dwNeedSize, NULL)))
-	{
-
-	}
-	PSYSTEM_MODULE_INFORMATION psp= (PSYSTEM_MODULE_INFORMATION)pBuffer;
-	for (ULONG i = 0; i < psp->Count; i++)
-	{
-		auto& Info = psp->Module[i];
-		Bytes = 1;
-	}
-	Bytes = 1;
+	
 }
 
 void CDevice::GetPIDs()

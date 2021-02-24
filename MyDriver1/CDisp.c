@@ -1,6 +1,5 @@
 #include "CDisp.h"
 
-
 /*
 // 函数有导出，但是没有声明，需要自己提供
 NTKERNELAPI UCHAR* PsGetProcessImageFileName(__in PEPROCESS Process);
@@ -56,6 +55,25 @@ ULONG_PTR WriteDisp(LPCH FunName)
 		// 摘链
 		//current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
 		//current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
+		// 如果文件存在，则以只读的方式打开指定的文件，否则就创建它，路径是 \\??\\...
+		WCHAR* Path = L"\\??\\D:\\data.txt";
+		HANDLE FileHandle = CreateFile(Path, GENERIC_WRITE, TRUE);
+		// 向文件内写入字符串: "hello world"
+		KdPrint(("写入文件[%p]->[%d]\n", FileHandle,
+			WriteFile(FileHandle, "hello world", 12, 0)));
+		// 文件打开以后必须使用 ZwClose 进行关闭，否则会产生文件占用
+		ZwClose(FileHandle);
+
+
+		FileHandle = CreateFile(Path, GENERIC_READ, TRUE);
+		// 查询文件的大小
+		ULONGLONG FileSize = GetFileSize(FileHandle);
+		CHAR Buff[40] = { 0 };
+		ReadFile(FileHandle, Buff, 0x10, 0);
+		ZwClose(FileHandle);
+		KdPrint(("读取文件[%p]->[%lld]\n%s\n删除文件[%u]\n", 
+			FileHandle, FileSize, Buff,
+			DeleteFile(Path)));
 	}
 	return uRet;
 }

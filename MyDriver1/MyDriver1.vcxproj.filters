@@ -25,9 +25,15 @@
     <ClCompile Include="CDisp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CMyFile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CDisp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

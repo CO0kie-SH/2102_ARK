@@ -139,10 +139,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDisp.c" />
+    <ClCompile Include="CMyFile.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CDisp.h" />
+    <ClInclude Include="CMyFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
