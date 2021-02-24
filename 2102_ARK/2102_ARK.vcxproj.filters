@@ -21,9 +21,15 @@
     <ClCompile Include="CDevice.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ZwQuerySystemInformation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CDevice.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ZwQuerySystemInformation.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

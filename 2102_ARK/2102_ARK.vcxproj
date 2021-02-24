@@ -143,9 +143,11 @@
   <ItemGroup>
     <ClCompile Include="2102_ARK.cpp" />
     <ClCompile Include="CDevice.cpp" />
+    <ClCompile Include="ZwQuerySystemInformation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CDevice.h" />
+    <ClInclude Include="ZwQuerySystemInformation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

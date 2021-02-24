@@ -2,11 +2,13 @@
 #include <iostream>
 #include <windows.h>
 #include <vector>
+#include <map>
 using std::vector;
+using std::map;
 
 #include "Psapi.h"
 #pragma comment (lib,"Psapi.lib")
-
+#include "ZwQuerySystemInformation.h"
 
 typedef struct _MyInfoSend
 {
@@ -25,11 +27,23 @@ typedef struct _MyProcess
 	ULONG pPID;
 }MyProcess, * LPMyProcess;
 
+
+typedef struct _MyThread
+{
+	ULONG TID;
+	ULONG PID;
+	PCHAR pETHREAD;
+}MyThread, * LPMyThread;
+
 typedef struct _MyProcess2
 {
-	ULONG tPID;
-	ULONG pPID;
-	CHAR  Path[MAX_PATH];
+	ULONG tPID;		//进程ID
+	ULONG pPID;		//父进程
+	ULONG ulThs;	//线程数量
+	ULONG ulMod;	//模块数量
+	PCHAR szExe;	//Exe名
+	CHAR  Path[MAX_PATH];	//进程路径
+	vector<MyThread> vTHs;	//线程数组
 }MyProcess2, * LPMyProcess2;
 
 #define DEVICE_NAME L"\\Device\\MyDevice"
@@ -43,7 +57,10 @@ public:
 	~CDevice();
 
 	void Test();
+	void GetPIDs();
 	void ShowPID(DWORD Num);
+	void GetMods(MyProcess2& Info);
+	void ShowMod(MyProcess2& Info);
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;

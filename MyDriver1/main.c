@@ -87,7 +87,7 @@ NTSTATUS ReadDispath(
 	PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
 	// Irp 栈中保存了从用户层传递进来的一些信息，这里是 R3 想读取的长度
-	KdPrint(("Length: %d\n", IrpStack->Parameters.Read.Length));
+	//KdPrint(("Length: %d\n", IrpStack->Parameters.Read.Length));
 
 	// 如果使用的是 DIRECT 方式，那么系统会给我们提供一个绑定到用户缓冲区的
 	//	MDL，通过 MmGetSystemAddressForMdlSafe 进行映射
@@ -96,7 +96,8 @@ NTSTATUS ReadDispath(
 	//DbgBreakPoint();
 
 	// 判断分页大小
-	if (Buffer  && *Buffer == 4096)
+	if (IrpStack->Parameters.Read.Length == 4096 &&
+		Buffer  && *Buffer == 4096)
 	{
 		// 分发数据包，用于发送不同数据包给R3
 		Irp->IoStatus.Information = ReadDisp((LPCH)(Buffer + 4), (LPMyInfoSend)Buffer);
