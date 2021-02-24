@@ -22,8 +22,9 @@ CDevice::CDevice() :pMem(0)
 
 	this->pMem = (LPCH)VirtualAlloc(NULL, sizeof(MyInfoSend), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (pMem == NULL)	ExitProcess(2);
-	this->GetPIDs();
-	this->GetSyss();
+	//this->GetPIDs();
+	//this->GetSyss();
+	this->EnumFiles();
 }
 
 CDevice::~CDevice()
@@ -56,7 +57,6 @@ void CDevice::Test()
 	}
 	Bytes = 1;
 }
-
 
 void CDevice::GetPIDs()
 {
@@ -189,4 +189,9 @@ void CDevice::GetSyss()
 			pInfo->ulNum1, (PWCH)pInfo->byBuf2, (PWCH)pInfo->byBuf3);
 		pInfo->ulNum1 = ulRet;
 	}
+}
+
+void CDevice::EnumFiles()
+{
+
 }

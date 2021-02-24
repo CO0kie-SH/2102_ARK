@@ -61,6 +61,7 @@ public:
 	void GetPIDs();
 	void GetThId(DWORD Num, LPMyInfoSend pInfo);
 	void GetMods(DWORD Num, LPMyInfoSend pInfo);
+	void EnumFiles();
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;
