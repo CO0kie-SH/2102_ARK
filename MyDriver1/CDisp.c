@@ -45,6 +45,35 @@ VOID ListCurrentProcessAndThread()
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
 
+BOOLEAN GetIDTsInfo()
+{
+	IDT_INFO IDT = { 0,0,0 };
+	PIDT_ENTRY pIDTEntry = NULL;
+	ULONG uAddr = 0;
+	UNREFERENCED_PARAMETER(uAddr);
+	// 获取IDT表地址
+	__asm sidt IDT;
+	// 获取IDT表数组地址
+	pIDTEntry = (PIDT_ENTRY)MAKELONG(IDT.uLowIdtBase, IDT.uHighIdtBase);
+	if (!pIDTEntry)	return 0;
+	// 获取IDT信息
+	//ULONG IDTEntryCount = 0;
+	//PIDT_INFO pIDTInfo = (PIDT_INFO)pBuff;
+	for (ULONG i = 0, Idt_address; i < 0x100; i++)
+	{
+		Idt_address = MAKELONG(pIDTEntry[i].uOffsetLow, pIDTEntry[i].uOffsetHigh);
+		KdPrint(("addr: %08X, int: %d, selector: %d, GateType:%d, DPL: %d\n",
+			Idt_address,// 中断地址
+			i,// 中断号
+			pIDTEntry[i].uSelector,// 段选择子
+			pIDTEntry[i].GateType,//类型
+			pIDTEntry[i].DPL//特权等级
+			));
+	}
+	return 0;
+}
+
+
 ULONG_PTR WriteDisp(LPCH FunName)
 {
 	ULONG_PTR uRet = 0;
@@ -77,7 +106,7 @@ ULONG_PTR WriteDisp(LPCH FunName)
 		//UNICODE_STRING ustrQueryFile;
 		//RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
 		//MyQueryFileAndFileFolder(ustrQueryFile);
-		
+		//GetIDTsInfo();
 	}
 	return uRet;
 }
@@ -88,7 +117,7 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	ULONG_PTR uRet = 0;
 	if (8 == (uRet = RtlCompareMemory(FunName, "GetPIDs", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
+		//KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
 		return GetPIDs(pInfo->ulBuff, pInfo->ulNum1, (LPMyProcess)pInfo->byBuf3);
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetThID", 8)))
@@ -109,9 +138,20 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetPath", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->遍历目录\n", FunName, "GetPath", uRet));
+		//KdPrint(("比较: %s %s %lu->遍历目录->%S\n",
+		//	FunName, "GetPath", uRet, (PWCHAR)pInfo->byBuf2));
 		return GetPath(pInfo->ulBuff, pInfo->ulNum1,
 			(PIO_STATUS_BLOCK)pInfo->byBuf2, pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetIDTs", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->遍历IDTs\n", FunName, "GetIDTs", uRet));
+		return GetIDTs(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetGDTs", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->遍历GDTs\n", FunName, "GetGDTs", uRet));
+		return GetGDTs(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
@@ -265,39 +305,39 @@ ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, L
 			&objectAttributes, pIoStatusBlock, NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE,
 			FILE_OPEN, FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT,
 			NULL, 0);
+		//KdPrint(("%d: 初次目录句柄%lX->[%u]\n", Count, pInfo->ulNum2, status));
 		if (NT_SUCCESS(status))
 		{
 			//初始化变量
 			pInfo->ulNum2 = (ULONG)hFile;
 			RtlZeroMemory(pIoStatusBlock, sizeof(IO_STATUS_BLOCK));
-			KdPrint(("%d: 初次目录句柄%lX\n", Count, pInfo->ulNum2));
 			// 获取信息
 			status = ZwQueryDirectoryFile(hFile, NULL, NULL, NULL, pIoStatusBlock, pDir, MaxBuff,
 				FileBothDirectoryInformation, TRUE, NULL, TRUE);
 			if (!NT_SUCCESS(status))
 			{
 				ZwClose(hFile);
-				KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
+				KdPrint(("ZwQueryDirectoryFile[ERROR1][%u]", status));
 				return 0;
 			}
 			pInfo->ulNum1 = ++Count;
-			KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
+			//KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
 			return pInfo->ulNum1;
 		}
 	}
 	else
 	{
-		KdPrint(("%d: 多次目录句柄%lX\n", Count, pInfo->ulNum2));
+		//KdPrint(("%d: 多次目录句柄%lX\n", Count, pInfo->ulNum2));
 		// 遍历指定目录下的第一个文件，并返回遍历到的结果
 		status = ZwQueryDirectoryFile(hFile, NULL, NULL, NULL, pIoStatusBlock, pDir, MaxBuff,
 			FileBothDirectoryInformation, TRUE, NULL, FALSE);
 		if (!NT_SUCCESS(status))
 		{
 			ZwClose(hFile);
-			KdPrint(("ZwQueryDirectoryFile[ERROR][%u]", status));
+			KdPrint(("ZwQueryDirectoryFile[ERROR2][%u]\n", status));
 			return 0;
 		}
-		KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
+		//KdPrint(("%d: [%2d]%S\n", Count, pDir->FileNameLength, pDir->FileName));
 		// 结束条件的判断是 IoStatusBlock 而不是函数的返回值
 		if (pIoStatusBlock->Status != STATUS_NO_MORE_FILES)
 		{
@@ -306,5 +346,41 @@ ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, L
 		}
 	}
 	ZwClose(hFile);
+	return 0;
+}
+
+ULONG_PTR GetIDTs(LPMyInfoSend pInfo)
+{
+	LPMyIDT myIDT = (LPMyIDT)pInfo->byBuf3;
+	IDT_INFO IDT = { 0,0,0 };
+	PIDT_ENTRY pIDTEntry = NULL;
+	// 获取IDT表地址
+	__asm sidt IDT;
+
+	// 获取IDT表数组地址
+	pIDTEntry = (PIDT_ENTRY)MAKELONG(IDT.uLowIdtBase, IDT.uHighIdtBase);
+	if (!pIDTEntry)	return 0;
+
+	// 获取IDT信息
+	for (ULONG i = 0, Idt_address; i < 0x100; i++)
+	{
+		Idt_address = MAKELONG(pIDTEntry[i].uOffsetLow, pIDTEntry[i].uOffsetHigh);
+		myIDT->Addr[i] = (LPCH)Idt_address;
+
+		RtlCopyMemory(&myIDT->IDT[i], &pIDTEntry[i], sizeof(IDT_ENTRY));
+		//KdPrint(("addr: %08X, int: %d, selector: %d, GateType:%d, DPL: %d\n",
+		//	Idt_address,// 中断地址
+		//	i,// 中断号
+		//	pIDTEntry[i].uSelector,// 段选择子
+		//	pIDTEntry[i].GateType,//类型
+		//	pIDTEntry[i].DPL//特权等级
+		//	));
+	}
+	return 0x100;
+}
+
+ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
+{
+	UNREFERENCED_PARAMETER(pInfo);
 	return 0;
 }

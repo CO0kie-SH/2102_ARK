@@ -24,7 +24,9 @@ CDevice::CDevice() :pMem(0)
 	if (pMem == NULL)	ExitProcess(2);
 	//this->GetPIDs();
 	//this->GetSyss();
-	this->EnumPath();
+	//this->EnumPath();
+	this->GetIDTs();
+	this->GetGDTs();
 }
 
 CDevice::~CDevice()
@@ -180,7 +182,7 @@ void CDevice::EnumPath()
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
 	strcpy_s(pInfo->byBuf1, "GetPath");
-	wsprintfW((LPWSTR)pInfo->byBuf2, L"%s", L"\\??\\D:\\Lucy");
+	wsprintfW((LPWSTR)pInfo->byBuf2, L"%s", L"\\??\\C:\\Users\\");
 
 	while (true)
 	{
@@ -198,4 +200,49 @@ void CDevice::EnumPath()
 		wprintf(L"%s\n", pDir->FileName);
 		ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
 	}
+}
+
+void CDevice::GetIDTs()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pIDT = (LPMyIDT)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetIDTs");
+
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet == 0x100)
+	{
+		for (ULONG i = 0; i < 0x100; i++)
+		{
+			printf("%3lu Addr[%p] selector: %d, GateType:%d, DPL: %d\n", 
+				i + 1, pIDT->Addr[i],
+				pIDT->IDT[i].uSelector,// 段选择子
+				pIDT->IDT[i].GateType,//类型
+				pIDT->IDT[i].DPL);//特权等级
+		}
+		return;
+	}
+	printf("读取IDT表失败\n");
+}
+
+void CDevice::GetGDTs()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pIDT = (LPMyIDT)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetGDTs");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("读取GDT表失败\n");
+		return;
+	}
+	printf("读取GDT表[%lu]\n", ulRet);
 }

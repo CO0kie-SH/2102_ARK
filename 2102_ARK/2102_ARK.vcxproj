@@ -146,6 +146,7 @@
     <ClCompile Include="ZwQuerySystemInformation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Header.h" />
     <ClInclude Include="CDevice.h" />
     <ClInclude Include="ZwQuerySystemInformation.h" />
   </ItemGroup>

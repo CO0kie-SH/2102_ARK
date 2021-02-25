@@ -1,6 +1,7 @@
 #pragma once
 #include <ntifs.h>
 #include <ntddk.h>
+#include "..\Header.h"
 
 // 使用指定的方式创建或打开一个指定的文件或目录
 HANDLE CreateFile(LPCWSTR pFilePath, ACCESS_MASK Access, BOOLEAN IsFile);

@@ -3,31 +3,6 @@
 #include <ntddk.h>
 #include "CMyFile.h"
 
-typedef struct _MyInfoSend
-{
-	ULONG ulSize;
-	ULONG ulBuff;
-	ULONG ulNum1;
-	ULONG ulNum2;
-	CHAR byBuf1[40];
-	CHAR byBuf2[40];
-	CHAR byBuf3[4000];
-}MyInfoSend, * LPMyInfoSend;
-
-typedef struct _MyProcess
-{
-	ULONG tPID;
-	ULONG pPID;
-}MyProcess, * LPMyProcess;
-
-typedef struct _MyThread
-{
-	ULONG TID;
-	ULONG PID;
-	PCHAR pETHREAD;
-}MyThread, * LPMyThread;
-
-
 
 //函数ZwQuerySystemInformation小结_sas???的博客-CSDN博客
 //https://blog.csdn.net/weixin_33906657/article/details/91860580
@@ -106,7 +81,6 @@ typedef struct _RTL_DRIVE_LETTER_CURDIR {
 }RTL_DRIVE_LETTER_CURDIR, * PRTL_DRIVE_LETTER_CURDIR;
 
 //进程参数
-
 typedef struct _RTL_USER_PROCESS_PARAMETERS {
 	ULONG MaximumLength;
 	ULONG Length;
@@ -170,6 +144,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 	// ... 后面还有一些字段，由于用不到，为了节省代码量，直接不考虑
 } *PLDR_DATA_TABLE_ENTRY;
 
+#define MAKELONG(a,b) ((LONG)(((UINT16)(((DWORD_PTR)(a))&0xffff)) | ((ULONG)((UINT16)(((DWORD_PTR)(b))& 0xffff)))<<16))
 NTKERNELAPI PPEB_EX PsGetProcessPeb(PEPROCESS Process);
 
 // 接受R3指令分发
@@ -187,6 +162,10 @@ ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo);
 ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo);
 // 遍历文件
 ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, LPMyInfoSend pInfo);
+// 遍历IDT
+ULONG_PTR GetIDTs(LPMyInfoSend pInfo);
+// 遍历GDT
+ULONG_PTR GetGDTs(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;

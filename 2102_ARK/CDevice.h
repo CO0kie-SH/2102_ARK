@@ -6,34 +6,10 @@
 using std::vector;
 using std::map;
 
+#include "..\Header.h"
 #include "Psapi.h"
 #pragma comment (lib,"Psapi.lib")
 #include "ZwQuerySystemInformation.h"
-
-typedef struct _MyInfoSend
-{
-	ULONG ulSize;
-	ULONG ulBuff;
-	ULONG ulNum1;
-	ULONG ulNum2;
-	CHAR byBuf1[40];
-	CHAR byBuf2[40];
-	CHAR byBuf3[4000];
-}MyInfoSend, * LPMyInfoSend;
-
-typedef struct _MyProcess
-{
-	ULONG tPID;
-	ULONG pPID;
-}MyProcess, * LPMyProcess;
-
-
-typedef struct _MyThread
-{
-	ULONG TID;
-	ULONG PID;
-	PCHAR pETHREAD;
-}MyThread, * LPMyThread;
 
 typedef struct _MyProcess2
 {
@@ -79,6 +55,8 @@ public:
 	void GetThId(DWORD Num, LPMyInfoSend pInfo);
 	void GetMods(DWORD Num, LPMyInfoSend pInfo);
 	void EnumPath();
+	void GetIDTs();
+	void GetGDTs();
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;
