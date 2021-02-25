@@ -122,6 +122,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		//KdPrint(("比较: %s %s %lu->遍历进程\n", FunName, "GetPIDs", uRet));
 		return GetPIDs(pInfo->ulBuff, pInfo->ulNum1, (LPMyProcess)pInfo->byBuf3);
 	}
+	if (8 == (uRet = RtlCompareMemory(FunName, "GettPID", 8)))
+	{
+		//KdPrint(("比较: %s %s %lu->获取进程信息\n", FunName, "GettPID", uRet));
+		return GettPID(pInfo->ulNum1, (LPMyInfoSend)pInfo->byBuf3);
+	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetThID", 8)))
 	{
 		//KdPrint(("比较: %s %s %lu->遍历线程\n", FunName, "GetThID", uRet));
@@ -183,6 +188,46 @@ ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID)
 	return count;
 }
 
+ULONG_PTR GettPID(ULONG PID, LPMyInfoSend pInfo)
+{
+	ULONG uRet = 0;
+	PEPROCESS Process = NULL;
+	if (!NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(PID), &Process)))
+	{
+		KdPrint(("无法获取EPROCESS PID=[%lu]！\n", PID));
+		return 0;
+	}
+	//KdPrint(("PID[%lu] EPROCESS[%p]\n", PID, Process));
+	//获取 PEB信息
+	//ULONG peb1 = *((ULONG*)((char*)Process + 0x1A8));
+	PPEB_EX peb = PsGetProcessPeb(Process);
+	if (!peb)
+	{
+		KdPrint(("无法获取peb PID[%lu]EPS[%p]！\n", PID, Process));
+		return 0;
+	}
+	//KdPrint(("PID[%lu] PEB[%p]\n", PID, peb));
+	__try
+	{
+		KAPC_STATE ks;
+		KeStackAttachProcess(Process, &ks);
+		ULONG* uUser = ((ULONG*)((char*)peb + 0x10));
+		//KdPrint(("PID[%lu] PEB2[%p]\n", PID, uUser));
+		PRTL_USER_PROCESS_PARAMETERS pUser =
+			(PRTL_USER_PROCESS_PARAMETERS)*uUser;
+		uRet = pUser->ImagePathName.Length;
+		RtlCopyMemory(pInfo->byBuf3, pUser->ImagePathName.Buffer, uRet);
+		pInfo->byBuf3[uRet] = 0x0;
+		KdPrint(("PID[%lu] [%lu]%S\n", PID, uRet, (PWCH)pInfo->byBuf3));
+		KeUnstackDetachProcess(&ks);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		KdPrint(("Can not Modules...PID[%lu]\n", PID));
+	}
+	return uRet;
+}
+
 ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID)
 {
 	PETHREAD Thread = NULL;
@@ -225,7 +270,7 @@ ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 	PPEB_EX peb = PsGetProcessPeb(Process);
 	if (!peb)
 	{
-		KdPrint(("无法获取peb[%lu][%p]！\n", PID, Process));
+		KdPrint(("无法获取peb PID[%lu]EPS[%p]！\n", PID, Process));
 		return 0;
 	}
 	//KdPrint(("peb[%lu][%p]！\n", PID, peb));

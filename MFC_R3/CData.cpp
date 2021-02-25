@@ -1,17 +1,16 @@
 #include "pch.h"
 #include "CData.h"
 
-
 CData gcData;
 CData::CData()
 	:hMFC(0),hCon(0)
 {
-	OutputDebugString(L"CData()\n");
 	AllocConsole();
 	FILE* pFile;
 	freopen_s(&pFile, "CON", "r", stdin);
 	freopen_s(&pFile, "CON", "w", stdout);
 	freopen_s(&pFile, "CON", "w", stderr);
+	puts("CData()");
 
 	this->mPID = GetCurrentProcessId();
 	this->mTID = GetCurrentThreadId();
@@ -47,8 +46,9 @@ CData::CData()
 
 CData::~CData()
 {
-	OutputDebugString(L"~CData()\n");
+	puts("~CData()");
 	std::cout << "控制台将关闭。" << std::endl;
+	Sleep(500);
 	FreeConsole();
 }
 

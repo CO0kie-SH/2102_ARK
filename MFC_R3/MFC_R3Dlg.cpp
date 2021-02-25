@@ -32,6 +32,7 @@ void CMFCR3Dlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMFCR3Dlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CMFCR3Dlg::OnNMDblclkTree1)
 END_MESSAGE_MAP()
 
 
@@ -87,3 +88,21 @@ HCURSOR CMFCR3Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CMFCR3Dlg::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (pNMHDR->idFrom == IDC_TREE1) {
+		CTreeCtrl* pTree = (CTreeCtrl*)GetDlgItem(IDC_TREE1);
+		ASSERT_VALID(pTree);
+		HTREEITEM hLeaf = pTree->GetSelectedItem();
+		bool bHasLeaf = pTree->ItemHasChildren(hLeaf), bExpand = false;
+		if (bHasLeaf) {
+			bExpand = TVIS_EXPANDED &
+				pTree->GetItemState(hLeaf, TVIS_EXPANDED);
+		}
+		gcCtrl.TreeClick(pTree, hLeaf);
+	}
+	*pResult = 0;
+}

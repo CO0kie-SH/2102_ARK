@@ -170,6 +170,8 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo);
 
 // 遍历PIDs
 ULONG_PTR GetPIDs(ULONG MaxBuff,ULONG MaxPID, LPMyProcess pPID);
+// 遍历tPID
+ULONG_PTR GettPID(ULONG PID, LPMyInfoSend pInfo);
 // 遍历线程
 ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID);
 // 遍历模块

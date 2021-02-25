@@ -16,6 +16,9 @@
     <Filter Include="My数据">
       <UniqueIdentifier>{8c34aefd-eea1-4cfe-8515-4e7ff473b489}</UniqueIdentifier>
     </Filter>
+    <Filter Include="My控制">
+      <UniqueIdentifier>{e1246271-6f7b-487b-8bee-f75c46efa69b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MFC_R3.h">
@@ -39,11 +42,14 @@
     <ClInclude Include="CData.h">
       <Filter>My数据</Filter>
     </ClInclude>
-    <ClInclude Include="CMyView.h">
+    <ClInclude Include="CR3R0.h">
       <Filter>My数据</Filter>
     </ClInclude>
+    <ClInclude Include="CMyView.h">
+      <Filter>My控制</Filter>
+    </ClInclude>
     <ClInclude Include="CCtrl.h">
-      <Filter>My数据</Filter>
+      <Filter>My控制</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -59,11 +65,14 @@
     <ClCompile Include="CData.cpp">
       <Filter>My数据</Filter>
     </ClCompile>
-    <ClCompile Include="CMyView.cpp">
+    <ClCompile Include="CR3R0.cpp">
       <Filter>My数据</Filter>
     </ClCompile>
+    <ClCompile Include="CMyView.cpp">
+      <Filter>My控制</Filter>
+    </ClCompile>
     <ClCompile Include="CCtrl.cpp">
-      <Filter>My数据</Filter>
+      <Filter>My控制</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
