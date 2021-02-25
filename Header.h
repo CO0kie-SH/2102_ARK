@@ -27,9 +27,8 @@ typedef struct _MyThread
 
 
 
-#pragma region IDT表结构体
 #pragma warning(disable:4214)
-
+#pragma region IDT表结构体
 typedef struct _IDT_INFO
 {
 	UINT16 uIdtLimit;
@@ -51,3 +50,34 @@ typedef struct _MyIDT
 	IDT_ENTRY	IDT[0x100];
 }MyIDT, * LPMyIDT;
 #pragma endregion
+
+#pragma region GDT表结构体
+typedef struct _GDT_INFO
+{
+	UINT16 uGdtLimit;
+	UINT16 uLowGdtBase;
+	UINT16 uHighGdtBase;
+}GDT_INFO, * PGDT_INFO;
+typedef struct _GDT_ENTRY
+{
+	UINT64 Limit_0_15 : 16;
+	UINT64 Limit_16_19 : 4;
+	UINT64 Base16_31 : 16;
+	UINT64 Base0_7 : 8;
+	UINT64 Base24_31 : 8;
+	UINT64 Type : 4;
+	UINT64 S : 1;
+	UINT64 DPL : 2;
+	UINT64 P : 1;
+	UINT64 D_B : 1;
+	UINT64 G : 1;
+}GDT_ENTRY, * PGDT_ENTRY;
+typedef struct _MyGDT
+{
+	LPCH		Addr[0x100];
+	ULONGLONG	uGDT[0x100];
+}MyGDT, * LPMyGDT;
+#pragma endregion
+
+
+

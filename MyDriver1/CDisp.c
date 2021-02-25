@@ -45,34 +45,10 @@ VOID ListCurrentProcessAndThread()
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
 
-BOOLEAN GetIDTsInfo()
+void EnumRegedit()
 {
-	IDT_INFO IDT = { 0,0,0 };
-	PIDT_ENTRY pIDTEntry = NULL;
-	ULONG uAddr = 0;
-	UNREFERENCED_PARAMETER(uAddr);
-	// 获取IDT表地址
-	__asm sidt IDT;
-	// 获取IDT表数组地址
-	pIDTEntry = (PIDT_ENTRY)MAKELONG(IDT.uLowIdtBase, IDT.uHighIdtBase);
-	if (!pIDTEntry)	return 0;
-	// 获取IDT信息
-	//ULONG IDTEntryCount = 0;
-	//PIDT_INFO pIDTInfo = (PIDT_INFO)pBuff;
-	for (ULONG i = 0, Idt_address; i < 0x100; i++)
-	{
-		Idt_address = MAKELONG(pIDTEntry[i].uOffsetLow, pIDTEntry[i].uOffsetHigh);
-		KdPrint(("addr: %08X, int: %d, selector: %d, GateType:%d, DPL: %d\n",
-			Idt_address,// 中断地址
-			i,// 中断号
-			pIDTEntry[i].uSelector,// 段选择子
-			pIDTEntry[i].GateType,//类型
-			pIDTEntry[i].DPL//特权等级
-			));
-	}
-	return 0;
-}
 
+}
 
 ULONG_PTR WriteDisp(LPCH FunName)
 {
@@ -84,6 +60,8 @@ ULONG_PTR WriteDisp(LPCH FunName)
 		// 摘链
 		//current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
 		//current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
+#pragma region 文件操作
+		/*
 		// 如果文件存在，则以只读的方式打开指定的文件，否则就创建它，路径是 \\??\\...
 		//WCHAR* Path = L"\\??\\D:\\data.txt";
 		//HANDLE FileHandle = CreateFile(Path, GENERIC_WRITE, TRUE);
@@ -100,13 +78,16 @@ ULONG_PTR WriteDisp(LPCH FunName)
 		//CHAR Buff[40] = { 0 };
 		//ReadFile(FileHandle, Buff, 0x10, 0);
 		//ZwClose(FileHandle);
-		//KdPrint(("读取文件[%p]->[%lld]\n%s\n删除文件[%u]\n", 
+		//KdPrint(("读取文件[%p]->[%lld]\n%s\n删除文件[%u]\n",
 		//	FileHandle, FileSize, Buff,
 		//	DeleteFile(Path)));
 		//UNICODE_STRING ustrQueryFile;
 		//RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
 		//MyQueryFileAndFileFolder(ustrQueryFile);
+		*/
+#pragma endregion
 		//GetIDTsInfo();
+		EnumRegedit();
 	}
 	return uRet;
 }
@@ -145,12 +126,12 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetIDTs", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->遍历IDTs\n", FunName, "GetIDTs", uRet));
+		//KdPrint(("比较: %s %s %lu->遍历IDTs\n", FunName, "GetIDTs", uRet));
 		return GetIDTs(pInfo);
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetGDTs", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->遍历GDTs\n", FunName, "GetGDTs", uRet));
+		//KdPrint(("比较: %s %s %lu->遍历GDTs\n", FunName, "GetGDTs", uRet));
 		return GetGDTs(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
@@ -381,6 +362,48 @@ ULONG_PTR GetIDTs(LPMyInfoSend pInfo)
 
 ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 {
-	UNREFERENCED_PARAMETER(pInfo);
+	//UNREFERENCED_PARAMETER(pInfo);
+	LPMyGDT myGDT = (LPMyGDT)pInfo->byBuf3;
+	GDT_INFO GDT = { 0,0,0 };
+	PGDT_ENTRY pGDTEntry = NULL;
+	// 获取GDT表地址
+	_asm sgdt GDT;
+	// 获取GDT表数组地址
+	pGDTEntry = (PGDT_ENTRY)MAKELONG(GDT.uLowGdtBase, GDT.uHighGdtBase);
+	if (!pGDTEntry)	return 0;
+
+	// 获取GDT信息
+	//KdPrint(("---------------GDT描述符表---------\n"));
+	ULONG i = 0, ulMax = pInfo->ulBuff / sizeof(GDT_ENTRY) - 1;
+	while (i < ulMax)
+	{
+		ULONGLONG* uGDT = (ULONGLONG*)&pGDTEntry[i];
+		//KdPrint(("%3lu addr: %p %016llX\n", i + 1, uGDT, *uGDT));
+		if (*uGDT == -1)	return i;
+		myGDT->Addr[i] = (LPCH)uGDT;
+		myGDT->uGDT[i] = *uGDT;
+		++i;
+	}
+	/*for (; i < 0x100; i++)
+	{
+		Gdt_address = MAKELONG(pGDTEntry[i].Base16_31, pGDTEntry[i].Base0_7);
+		Gdt_address = MAKELONG(Gdt_address, pGDTEntry[i].Base24_31);
+		Gdt_limit = MAKELONG(pGDTEntry[i].Limit_0_15, pGDTEntry[i].Limit_16_19);
+		myGDT->Addr[i] = (LPCH)Gdt_address;
+		myGDT->limit[i] = Gdt_limit;
+
+		RtlCopyMemory(&myGDT->GDT[i], &pGDTEntry[i], sizeof(GDT_ENTRY));
+		 打印
+		KdPrint(("%3lu addr: %08X, limit: %d, P: %d, G:%d, S:%d,Type:%d,D/B:%d,DPL:%d\n",
+			i+1,
+			Gdt_address, Gdt_limit,
+			pGDTEntry[i].P,
+			pGDTEntry[i].G,
+			pGDTEntry[i].S,
+			pGDTEntry[i].Type,
+			pGDTEntry[i].D_B,
+			pGDTEntry[i].DPL
+			));
+	}*/
 	return 0;
 }

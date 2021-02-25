@@ -25,8 +25,8 @@ CDevice::CDevice() :pMem(0)
 	//this->GetPIDs();
 	//this->GetSyss();
 	//this->EnumPath();
-	this->GetIDTs();
-	this->GetGDTs();
+	//this->GetIDTs();
+	//this->GetGDTs();
 }
 
 CDevice::~CDevice()
@@ -232,17 +232,29 @@ void CDevice::GetGDTs()
 {
 	ULONG ulRet = 0;
 	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
-	auto pIDT = (LPMyIDT)pInfo->byBuf3;
+	auto pGDT = (LPMyGDT)pInfo->byBuf3;
 	ZeroMemory(pInfo, sizeof(MyInfoSend));
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
 	strcpy_s(pInfo->byBuf1, "GetGDTs");
 
-	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
-		|| ulRet == 0)
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet > 0)
 	{
-		printf("∂¡»°GDT±Ì ß∞‹\n");
+		for (ULONG i = 0; i < ulRet; i++)
+		{
+			PSHORT sGDT= (PSHORT)&pGDT->uGDT[i];
+			PGDT_ENTRY eGDT = (PGDT_ENTRY)sGDT;
+
+			ULONG Addr = MAKELONG(sGDT[0], sGDT[3]);
+			UCHAR P = eGDT->P,
+				S = eGDT->S,
+				G = eGDT->G;
+			printf("%3lu [%p] %016llX ∂Œ∆´“∆ 0x%08X P=%d S=%d G=%d\n",
+				i + 1, pGDT->Addr[i], pGDT->uGDT[i],
+				Addr, P, S, G);
+		}
 		return;
 	}
-	printf("∂¡»°GDT±Ì[%lu]\n", ulRet);
+	printf("∂¡»°GDT±Ì ß∞‹\n");
 }
