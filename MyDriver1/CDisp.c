@@ -45,9 +45,30 @@ VOID ListCurrentProcessAndThread()
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
 
+//1.使用汇编的方法读取内核函数的地址
+ULONG GetFunctionAddr_ASM(PKSYSTEM_SERVICE_TABLE KeServiceDescriptorTable, LONG lgSsdtIndex)
+{
+	ULONG lgSsdtFunAddr = 0;
+	//lgSsdtFunAddr = [[KeServiceDescriptorTable]+lgSsdtIndex*4]
+	__asm
+	{
+		push ebx
+		push eax
+		mov ebx, KeServiceDescriptorTable
+		mov ebx, [ebx]	//SSDT表的基地址
+		mov eax, lgSsdtIndex
+		shl eax, 2
+		add ebx, eax
+		mov ebx, [ebx]
+		mov lgSsdtFunAddr, ebx
+		pop  eax
+		pop  ebx
+	}
+	return lgSsdtFunAddr;
+}
+
 void EnumRegedit()
 {
-
 }
 
 ULONG_PTR WriteDisp(LPCH FunName)
@@ -133,6 +154,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	{
 		//KdPrint(("比较: %s %s %lu->遍历GDTs\n", FunName, "GetGDTs", uRet));
 		return GetGDTs(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetSSDT", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->遍历SSDT\n", FunName, "GetSSDT", uRet));
+		return GetSSDT(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
@@ -406,4 +432,25 @@ ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 			));
 	}*/
 	return 0;
+}
+
+ULONG_PTR GetSSDT(LPMyInfoSend pInfo)
+{
+	// 获取系统服务描述符表
+	PETHREAD pCurThread = PsGetCurrentThread();
+	KSERVICE_TABLE_DESCRIPTOR* pServiceTable = (KSERVICE_TABLE_DESCRIPTOR*)
+		(*(ULONG*)((ULONG_PTR)pCurThread + 0xBC));
+	PKSYSTEM_SERVICE_TABLE pSSDT = (PKSYSTEM_SERVICE_TABLE)pServiceTable;
+	//KdPrint(("SSDT %lu\n", pSSDT->NumberOfService));
+	ULONG i = 0, Addr, * lpSave = (ULONG*)pInfo->byBuf3,
+		max1 = pInfo->ulBuff / sizeof(ULONG),
+		max2 = pSSDT->NumberOfService;
+	while (i < max2)
+	{
+		if (i > max1)	return 0;
+		Addr = GetFunctionAddr_ASM(pSSDT, i);
+		lpSave[i] = Addr;
+		i++;
+	}
+	return i;
 }

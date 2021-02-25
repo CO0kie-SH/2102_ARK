@@ -27,6 +27,7 @@ CDevice::CDevice() :pMem(0)
 	//this->EnumPath();
 	//this->GetIDTs();
 	//this->GetGDTs();
+	this->GetSSDT();
 }
 
 CDevice::~CDevice()
@@ -257,4 +258,27 @@ void CDevice::GetGDTs()
 		return;
 	}
 	printf("读取GDT表失败\n");
+}
+
+void CDevice::GetSSDT()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetSSDT");
+
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet > 0)
+	{
+		for (ULONG i = 0, *Addr = (ULONG*)pInfo->byBuf3;
+			i < ulRet; i++)
+		{
+			printf("%3lu [%08lX]\n",
+				i + 1, Addr[i]);
+		}
+		return;
+	}
+	printf("读取SSDT表失败\n");
 }

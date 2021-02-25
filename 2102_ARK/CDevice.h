@@ -57,6 +57,7 @@ public:
 	void EnumPath();
 	void GetIDTs();
 	void GetGDTs();
+	void GetSSDT();
 private:
 	HANDLE DeviceHandle;
 	LPCH	pMem;

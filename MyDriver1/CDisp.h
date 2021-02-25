@@ -143,6 +143,22 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 	struct _UNICODE_STRING BaseDllName;                                     //0x2c
 	// ... 后面还有一些字段，由于用不到，为了节省代码量，直接不考虑
 } *PLDR_DATA_TABLE_ENTRY;
+#pragma pack(1)
+typedef  struct  _KSYSTEM_SERVICE_TABLE
+{
+	PULONG  ServiceTableBase;   //函数地址表的首地址
+	PULONG  ServiceCounterTableBase;// 函数表中每个函数被调用的次数
+	ULONG   NumberOfService;// 服务函数的个数, NumberOfService * 4 就是整个地址表的大小
+	UCHAR* ParamTableBase; // 参数个数表首地址
+} KSYSTEM_SERVICE_TABLE, * PKSYSTEM_SERVICE_TABLE;
+typedef  struct  _KSERVICE_TABLE_DESCRIPTOR
+{
+	KSYSTEM_SERVICE_TABLE   ntoskrnl;// ntoskrnl.exe的服务函数，即SSDT
+	KSYSTEM_SERVICE_TABLE   win32k; // win32k.sys的服务函数(GDI32.dll/User32.dll 的内核支持)，即ShadowSSDT
+	KSYSTEM_SERVICE_TABLE   notUsed1; // 不使用
+	KSYSTEM_SERVICE_TABLE   notUsed2; // 不使用
+}KSERVICE_TABLE_DESCRIPTOR, * PKSERVICE_TABLE_DESCRIPTOR;
+#pragma pack()
 
 #define MAKELONG(a,b) ((LONG)(((UINT16)(((DWORD_PTR)(a))&0xffff)) | ((ULONG)((UINT16)(((DWORD_PTR)(b))& 0xffff)))<<16))
 NTKERNELAPI PPEB_EX PsGetProcessPeb(PEPROCESS Process);
@@ -166,6 +182,8 @@ ULONG_PTR GetPath(ULONG MaxBuff, ULONG Count, PIO_STATUS_BLOCK pIoStatusBlock, L
 ULONG_PTR GetIDTs(LPMyInfoSend pInfo);
 // 遍历GDT
 ULONG_PTR GetGDTs(LPMyInfoSend pInfo);
+// 遍历SSDT
+ULONG_PTR GetSSDT(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;
