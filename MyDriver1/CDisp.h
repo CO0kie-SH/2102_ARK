@@ -176,6 +176,8 @@ ULONG_PTR GettPID(ULONG PID, LPMyInfoSend pInfo);
 ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID);
 // 遍历模块
 ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo);
+// 遍历模块2
+ULONG_PTR GetMODs(LPMyInfoSend pInfo);
 // 遍历驱动
 ULONG_PTR GetSyss(ULONG MaxBuff, ULONG List, LPMyInfoSend pInfo);
 // 遍历文件

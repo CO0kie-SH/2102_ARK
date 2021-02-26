@@ -13,6 +13,7 @@ public:
 
 	BOOL InitCtrl(CMyView* pcView);
 	void TreeClick(CTreeCtrl* cTree, HTREEITEM hTree);
+	void TreeFun(DWORD ID, DWORD dwC1 = 0);
 private:
 
 };

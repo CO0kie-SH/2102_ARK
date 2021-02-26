@@ -138,6 +138,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		//KdPrint(("比较: %s %s %lu->遍历模块\n", FunName, "GetMods", uRet));
 		return GetMods(pInfo->ulBuff, pInfo->ulNum1, pInfo->ulNum2, pInfo);
 	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "GetMODs", 8)))
+	{
+		//KdPrint(("比较: %s %lu->遍历模块 %lu\n", FunName, uRet, pInfo->ulNum1));
+		return GetMODs(pInfo);
+	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetSyss", 8)))
 	{
 		//KdPrint(("比较: %s %s %lu->遍历驱动\n", FunName, "GetSyss", uRet));
@@ -256,6 +261,9 @@ ULONG_PTR GetThID(ULONG MaxBuff, ULONG MaxTID, ULONG TID, LPMyThread pTID)
 	return 0;
 }
 
+/*
+	废弃
+*/
 ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 {
 	UNREFERENCED_PARAMETER(MaxBuff);
@@ -305,6 +313,52 @@ ULONG_PTR GetMods(ULONG MaxBuff, ULONG PID, ULONG List, LPMyInfoSend pInfo)
 		//DbgPrint("Can not Modules...");
 	}
 	KeUnstackDetachProcess(&ks);
+	return uRet;
+}
+
+ULONG_PTR GetMODs(LPMyInfoSend pInfo)
+{
+	ULONG PID = pInfo->ulNum1, ulNext = pInfo->ulNum2,
+		uRet = 0;
+	PWCH szExe = (PWCH)pInfo->byBuf3;
+	PEPROCESS Process = NULL;
+	if (!NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(PID), &Process)))
+	{
+		KdPrint(("无法获取EPROCESS PID=[%lu]！\n", PID));
+		return 0;
+	}
+	//KdPrint(("PID[%lu] EPROCESS[%p] %S\n", PID, Process, szExe));
+	//获取 PEB信息
+	//ULONG peb1 = *((ULONG*)((char*)Process + 0x1A8));
+	PPEB_EX peb = PsGetProcessPeb(Process);
+	if (!peb)
+	{
+		KdPrint(("无法获取peb PID[%lu]EPS[%p]！\n", PID, Process));
+		return 0;
+	}
+	//KdPrint(("PID[%lu] PEB[%p]\n", PID, peb));
+	KAPC_STATE ks;
+	__try
+	{
+		KeStackAttachProcess(Process, &ks);
+		PPEB_LDR_DATA_EX peb_LDR_data = (PPEB_LDR_DATA_EX)peb->Ldr;
+		PLIST_ENTRY list_entry = &peb_LDR_data->InLoadOrderModuleList;
+		PLIST_ENTRY List = ulNext ? (PLIST_ENTRY)ulNext : list_entry->Flink;
+		//获取LDR链
+		PLDR_DATA_TABLE_ENTRY_EX ldr = 
+			(PLDR_DATA_TABLE_ENTRY_EX)List;
+		//KdPrint(("PID[%lu] FullName[%wZ]\n", PID, &ldr->FullDllName));
+		pInfo->ulNum2 = (ULONG)ldr->DllBase;
+		RtlCopyMemory(szExe, ldr->FullDllName.Buffer, ldr->FullDllName.Length);
+		if (List->Flink != list_entry->Flink)
+			uRet = (ULONG)List->Flink;
+		KeUnstackDetachProcess(&ks);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		KdPrint(("Can not Modules...PID[%lu]\n", PID));
+		KeUnstackDetachProcess(&ks);
+	}
 	return uRet;
 }
 

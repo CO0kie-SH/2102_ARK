@@ -34,57 +34,12 @@ CR3R0::~CR3R0()
 
 BOOL CR3R0::GetPIDs(vector<MyProcess3>& vPIDs)
 {
-	ULONG ulRet = 0;
-	LPMyInfoSend pInfo = (LPMyInfoSend)this->pMem;
-	ZeroMemory(pInfo, 4096);
-	pInfo->ulSize = 4096;
-	pInfo->ulBuff = 4000;
-	pInfo->ulNum1 = 999999;
-	strcpy_s(pInfo->byBuf1, "GetPIDs");
-	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
-	{
-		puts("读取进程数失败");
-		return 0;
-	}
-	printf("读取进程数[%d]\n", ulRet);
-	LPMyProcess pPro = (LPMyProcess)pInfo->byBuf3;
-	vPIDs.clear();
-	for (ULONG i = 0; i < ulRet; i++)
-	{
-		//printf("%lu [%lu][%lu]\n", i + 1, pPro[i].tPID, pPro[i].pPID);
-		vPIDs.push_back({ pPro[i].tPID,pPro[i].pPID });
-	}
-	return this->GettPID(vPIDs);
+	return 0;
 }
 
 BOOL CR3R0::GettPID(vector<MyProcess3>& vPIDs)
 {
-	ULONG ulRet = 0;
-	LPMyInfoSend pInfo = (LPMyInfoSend)this->pMem;
-	ZeroMemory(pInfo, 4096);
-	pInfo->ulSize = 4096;
-	pInfo->ulBuff = 4000;
-	pInfo->ulNum1 = 999999;
-	strcpy_s(pInfo->byBuf1, "GettPID");
-
-	for (ULONG i = 0, max = vPIDs.size(); i < max; i++)
-	{
-		auto& Info = vPIDs[i];
-		//if (Info.tPID != GetCurrentProcessId())
-		//	continue;
-
-		pInfo->ulNum1 = Info.tPID;
-		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
-			|| ulRet == 0)
-		{
-			printf("读取进程信息失败。%lu\n", Info.tPID);
-			continue;
-		}
-		printf("读取进程信息。[%lu]", Info.tPID);
-		wprintf(L"%s\n", (PWCH)pInfo->byBuf3);
-		ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
-	}
-	return TRUE;
+	return 0;
 }
 
 BOOL CR3R0::GetTIDs(vector<MyProcess3>& vPIDs)
@@ -92,7 +47,63 @@ BOOL CR3R0::GetTIDs(vector<MyProcess3>& vPIDs)
 	return 0;
 }
 
-BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs)
+BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs, DWORD PID /*= 0*/)
 {
-	return 0;
+	DWORD i = 0, count = 0, dwRet = 0,
+		dwSize = vPIDs.size(), dwPID;
+	LPMyInfoSend pInfo = (LPMyInfoSend)this->pMem;
+	PWSTR szExe = (PWSTR)pInfo->byBuf3;
+	//ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	pInfo->ulNum1 = 999999;
+	strcpy_s(pInfo->byBuf1, "GetMODs");
+
+	do{
+		auto& Info = vPIDs[i];
+		dwPID = Info.tPID;
+		if (PID && PID != dwPID)	//判断传入的PID
+			continue;
+		pInfo->ulNum1 = dwPID;		//PID
+		pInfo->ulNum2 = 0;			//链
+		count = 0;
+		if (PID)
+		{
+			Info.vMDs.clear();
+		}
+		//if (dwPID != GetCurrentProcessId())
+		//	continue;
+		do {
+			//printf("准备查询模块 PID[%lu]\n", dwPID);
+			ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
+			StrCpyW(szExe, Info.szExe.GetBuffer());
+			if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &dwRet, NULL)
+				|| dwRet == 0)
+			{
+				wprintf(L"读取模块信息%s。%2lu PID[%lu] Next[%lu]%s\n",
+					dwRet == 0 ? L"结尾" : L"失败",
+					count, dwPID, dwRet, szExe);
+				break;
+			}
+
+			if (++count > 200)
+			{
+				wprintf(L"读取模块信息超限。%2lu PID[%lu] Next[%lu]%s\n",
+					count, dwPID, dwRet, szExe);
+				return FALSE;
+			}
+
+			if (count == 1 && PID == 0)		//记录路径
+			{
+				Info.szPath = szExe;
+				Info.pNextMod = dwRet;
+				break;
+			}
+			
+			wprintf(L"%3lu %lu Next[%08lX] Base[%08lX] %s\n",
+				count, dwPID, dwRet, pInfo->ulNum2, szExe);
+			pInfo->ulNum2 = dwRet;	//下一个链继续
+		} while (PID);
+	} while (++i < dwSize);
+	return TRUE;
 }

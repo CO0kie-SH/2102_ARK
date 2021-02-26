@@ -81,8 +81,8 @@ void CMyView::InitList(DWORD ID)
 	case 11:									//遍历进程
 		this->pvList->InsertColumn(0, _T("进程路径"), LVCFMT_LEFT, 222);
 		this->pvList->InsertColumn(0, _T("进程名"), LVCFMT_LEFT, 123);
-		this->pvList->InsertColumn(0, _T("PPID"), LVCFMT_LEFT, 111);
-		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 111);
+		this->pvList->InsertColumn(0, _T("PPID"), LVCFMT_LEFT, 55);
+		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 55);
 		break;
 	default:
 		break;
@@ -103,6 +103,7 @@ void CMyView::InitList(vector<MyProcess3>& vPIDs)
 		this->pvList->SetItemText(i, 1, str);
 		str.Format(_T("%lu"), Info.pPID);
 		this->pvList->SetItemText(i, 2, str);
-		this->pvList->SetItemText(i, 4, Info.Path);
+		this->pvList->SetItemText(i, 3, Info.szExe);
+		this->pvList->SetItemText(i, 4, Info.szPath);
 	}
 }

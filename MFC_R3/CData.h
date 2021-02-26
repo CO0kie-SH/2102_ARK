@@ -59,8 +59,9 @@ typedef struct _MyProcess3
 	ULONG pPID;		//父进程
 	ULONG ulThs;	//线程数量
 	ULONG ulMod;	//模块数量
-	LPWCH szExe;	//Exe名
-	CString Path;	//进程路径
+	ULONG pNextMod;	//下一个模块
+	CString szExe;	//Exe名
+	CString szPath;	//进程路径
 	vector<MyMod> vMDs;		//模块数组
 	vector<MyThread> vTHs;	//线程数组
 }MyProcess3, * LPMyProcess3;
