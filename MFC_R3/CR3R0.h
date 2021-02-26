@@ -22,6 +22,11 @@ public:
 	BOOL GetSSDT(CListCtrl* pvList);
 	BOOL SetSYSf();
 	BOOL SYSHOOK();
+	BOOL HidePID();
+	BOOL ExitPID(CEditView* pvEdit);
+	BOOL CrtFile();
+	BOOL DelFile();
+	BOOL RLoadNT();
 private:
 };
 

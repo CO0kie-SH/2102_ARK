@@ -79,33 +79,6 @@ ULONG_PTR WriteDisp(LPCH FunName)
 	if (10 == (uRet = RtlCompareMemory(FunName, "InitDevice", 10)))
 	{
 		KdPrint(("比较: %s %s %lu->初始化环境\n", FunName, "InitDevice", uRet));
-#pragma region 文件操作
-		/*
-		// 如果文件存在，则以只读的方式打开指定的文件，否则就创建它，路径是 \\??\\...
-		//WCHAR* Path = L"\\??\\D:\\data.txt";
-		//HANDLE FileHandle = CreateFile(Path, GENERIC_WRITE, TRUE);
-		//// 向文件内写入字符串: "hello world"
-		//KdPrint(("写入文件[%p]->[%d]\n", FileHandle,
-		//	WriteFile(FileHandle, "hello world", 12, 0)));
-		//// 文件打开以后必须使用 ZwClose 进行关闭，否则会产生文件占用
-		//ZwClose(FileHandle);
-
-
-		//FileHandle = CreateFile(Path, GENERIC_READ, TRUE);
-		//// 查询文件的大小
-		//ULONGLONG FileSize = GetFileSize(FileHandle);
-		//CHAR Buff[40] = { 0 };
-		//ReadFile(FileHandle, Buff, 0x10, 0);
-		//ZwClose(FileHandle);
-		//KdPrint(("读取文件[%p]->[%lld]\n%s\n删除文件[%u]\n",
-		//	FileHandle, FileSize, Buff,
-		//	DeleteFile(Path)));
-		//UNICODE_STRING ustrQueryFile;
-		//RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
-		//MyQueryFileAndFileFolder(ustrQueryFile);
-		*/
-#pragma endregion
-		//GetIDTsInfo();
 		EnumRegedit();
 	}
 	return uRet;
@@ -170,13 +143,33 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "SetSYSf", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->隐藏驱动\n", FunName, "SetSYSf", uRet));
+		//KdPrint(("比较: %s %s %lu->隐藏驱动\n", FunName, "SetSYSf", uRet));
 		return SetSYSf(pInfo);
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "SYSHOOK", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->HOOK\n", FunName, "SYSHOOK", uRet));
+		//KdPrint(("比较: %s %s %lu->HOOK\n", FunName, "SYSHOOK", uRet));
 		return SYSHOOK(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "CrtFile", 8)))
+	{
+		//KdPrint(("比较: %s %s %lu->创建文件\n", FunName, "CrtFile", uRet));
+		return CrtFile(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "DelFile", 8)))
+	{
+		//KdPrint(("比较: %s %s %lu->删除文件\n", FunName, "DelFile", uRet));
+		return DelFile(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "ExitPID", 8)))
+	{
+		//KdPrint(("比较: %s %s %lu->结束进程\n", FunName, "ExitPID", uRet));
+		return ExitPID(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "RLoadNT", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->重载内核\n", FunName, "RLoadNT", uRet));
+		return RLoadNT(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
@@ -510,7 +503,7 @@ ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 	while (i < ulMax)
 	{
 		ULONGLONG* uGDT = (ULONGLONG*)&pGDTEntry[i];
-		KdPrint(("%3lu addr: %p %016llX\n", i + 1, uGDT, *uGDT));
+		//KdPrint(("%3lu addr: %p %016llX\n", i + 1, uGDT, *uGDT));
 		if (*uGDT == -1)	return i;
 		pUser[i] = pGDTEntry[i];
 		//myGDT->Addr[i] = (LPCH)uGDT;
@@ -598,7 +591,7 @@ void kOpen()
 	if (hookPID && hookPID == kPID)
 	{
 		_asm mov[edx + 0x0c], 0;
-		KdPrint(("Open [%lu]\n", kPID));
+		//KdPrint(("Open [%lu]\n", kPID));
 	}
 }
 
@@ -650,6 +643,27 @@ UnHook()
 	KeLowerIrql(oldIrql);
 }
 
+ULONG_PTR ExitPID(LPMyInfoSend pInfo)
+{
+
+	HANDLE hProcess = 0;
+	OBJECT_ATTRIBUTES Obj = {sizeof(OBJECT_ATTRIBUTES)};
+	CLIENT_ID Cid = { (HANDLE)pInfo->ulNum1 };
+
+	NTSTATUS status = ZwOpenProcess(
+		&hProcess,
+		1,
+		&Obj,
+		&Cid);
+	if (hProcess)
+	{
+		status = ZwTerminateProcess(hProcess, 0);
+		ZwClose(hProcess);
+		return NT_SUCCESS(status);
+	}
+	return 0;
+}
+
 ULONG_PTR SYSHOOK(LPMyInfoSend pInfo)
 {
 	//UNREFERENCED_PARAMETER(pInfo);
@@ -657,4 +671,42 @@ ULONG_PTR SYSHOOK(LPMyInfoSend pInfo)
 	if (OriginalAddress == 0)
 		Hook();
 	return hookPID;
+}
+
+ULONG_PTR CrtFile(LPMyInfoSend pInfo)
+{
+	//UNREFERENCED_PARAMETER(pInfo);
+#pragma region 文件操作
+	
+	// 如果文件存在，则以只读的方式打开指定的文件，否则就创建它，路径是 \\??\\...
+	WCHAR* Path = L"\\??\\D:\\data.txt";
+	HANDLE FileHandle = CreateFile(Path, GENERIC_WRITE, TRUE);
+	// 向文件内写入字符串: "hello world"
+	KdPrint(("写入文件[%p]->[%d]\n", FileHandle,
+		WriteFile(FileHandle, "hello world", 12, 0)));
+	// 文件打开以后必须使用 ZwClose 进行关闭，否则会产生文件占用
+	ZwClose(FileHandle);
+
+
+	FileHandle = CreateFile(Path, GENERIC_READ, TRUE);
+	// 查询文件的大小
+	ULONGLONG FileSize = GetFileSize(FileHandle);
+	//CHAR Buff[40] = { 0 };
+	LPCH Buff = pInfo->byBuf3;
+	ReadFile(FileHandle, Buff, 0x10, 0);
+	ZwClose(FileHandle);
+	KdPrint(("读取文件[%p]->[%lld]\n%s\n",
+		FileHandle, FileSize, Buff));
+	//UNICODE_STRING ustrQueryFile;
+	//RtlInitUnicodeString(&ustrQueryFile, L"\\??\\D:\\Lucy");
+	//MyQueryFileAndFileFolder(ustrQueryFile);
+#pragma endregion
+	return TRUE;
+}
+
+ULONG_PTR DelFile(LPMyInfoSend pInfo)
+{
+	UNREFERENCED_PARAMETER(pInfo);
+	WCHAR* Path = L"\\??\\D:\\data.txt";
+	return NT_SUCCESS(DeleteFile(Path));
 }

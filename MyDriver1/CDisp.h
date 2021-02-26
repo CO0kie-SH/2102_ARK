@@ -2,6 +2,7 @@
 #include <ntifs.h>
 #include <ntddk.h>
 #include "CMyFile.h"
+#include "CReNT.h"
 
 
 //函数ZwQuerySystemInformation小结_sas???的博客-CSDN博客
@@ -192,6 +193,14 @@ ULONG_PTR GetSSDT(LPMyInfoSend pInfo);
 ULONG_PTR SetSYSf(LPMyInfoSend pInfo);
 // HOOK
 ULONG_PTR SYSHOOK(LPMyInfoSend pInfo);
+// 创建文件
+ULONG_PTR CrtFile(LPMyInfoSend pInfo);
+// 删除文件
+ULONG_PTR DelFile(LPMyInfoSend pInfo);
+// 结束进程
+ULONG_PTR ExitPID(LPMyInfoSend pInfo);
+// 重载内核
+ULONG_PTR RLoadNT(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;

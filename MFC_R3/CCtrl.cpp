@@ -78,6 +78,14 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	{
 		this->TreeFun(13);
 	}
+	else if (tInfo.str == gszTreeCtrl隐藏进程)
+	{
+		this->TreeFun(14);
+	}
+	else if (tInfo.str == gszTreeCtrl结束进程)
+	{
+		this->TreeFun(15);
+	}
 	else if (tInfo.str == gszTreeCtrl遍历驱动)
 	{
 		this->TreeFun(21);
@@ -89,6 +97,14 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	else if (tInfo.str == gszTreeCtrl遍历文件)
 	{
 		this->TreeFun(31);
+	}
+	else if (tInfo.str == gszTreeCtrl创建文件)
+	{
+		this->TreeFun(32);
+	}
+	else if (tInfo.str == gszTreeCtrl删除文件)
+	{
+		this->TreeFun(33);
 	}
 	else if (tInfo.str == gszTreeCtrl遍历IDT)
 	{
@@ -105,6 +121,10 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	else if (tInfo.str == gszTreeCtrlHOOKs)
 	{
 		this->TreeFun(81, hTree);
+	}
+	else if (tInfo.str == gszTreeCtrlReLoadNT)
+	{
+		this->TreeFun(82, hTree);
 	}
 }
 
@@ -166,6 +186,20 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 			MessageBoxA(0, "获取模块失败。", 0, 0);
 		}
 	}break;
+	//隐藏进程
+	case 14: {
+		if (this->pcR3R0->HidePID())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "隐藏进程。", 0, 0);
+		}
+	}break;
+	//结束进程
+	case 15: {
+		this->pcR3R0->ExitPID(this->pcView->pvEdit);
+	}break;
 	//遍历驱动
 	case 21: {
 		vector<MySys> vSYSs;
@@ -201,6 +235,28 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "获取文件失败。", 0, 0);
+		}
+	}break;
+	//创建文件
+	case 32: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->CrtFile())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "创建文件失败。", 0, 0);
+		}
+	}break;
+	//删除文件
+	case 33: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->DelFile())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "删除文件失败。", 0, 0);
 		}
 	}break;
 	//遍历IDT
@@ -245,6 +301,16 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "开启HOOK保护自身失败。", 0, 0);
+		}
+	}break;
+	//重载内核
+	case 82: {
+		if (this->pcR3R0->RLoadNT())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "重载内核失败。", 0, 0);
 		}
 	}break;
 	default: break;

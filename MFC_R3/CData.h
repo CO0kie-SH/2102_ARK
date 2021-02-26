@@ -39,6 +39,8 @@ constexpr PTCHAR gszTreeFunctions[] = {
 #define gszTreeCtrl遍历进程	gszTreeFunctions1[0]
 #define gszTreeCtrl线程操作	gszTreeFunctions1[1]
 #define gszTreeCtrl模块操作	gszTreeFunctions1[2]
+#define gszTreeCtrl隐藏进程	gszTreeFunctions1[3]
+#define gszTreeCtrl结束进程	gszTreeFunctions1[4]
 constexpr PTCHAR gszTreeFunctions1[] = {
 	_T("遍历进程"),
 	_T("线程操作"),
@@ -57,6 +59,8 @@ constexpr PTCHAR gszTreeFunctions2[] = {
 
 #define gnbTreeFunctions3					3	// 二级菜单
 #define gszTreeCtrl遍历文件	gszTreeFunctions3[0]
+#define gszTreeCtrl创建文件	gszTreeFunctions3[1]
+#define gszTreeCtrl删除文件	gszTreeFunctions3[2]
 constexpr PTCHAR gszTreeFunctions3[] = {
 	_T("遍历系统目录"),
 	_T("创建文件"),
@@ -81,10 +85,12 @@ constexpr PTCHAR gszTreeFunctions7[] = {
 	_T("遍历SSDT表")
 };
 
-#define gnbTreeFunctions8					1	// 二级菜单
+#define gnbTreeFunctions8					2	// 二级菜单
 #define gszTreeCtrlHOOKs	gszTreeFunctions8[0]
+#define gszTreeCtrlReLoadNT	gszTreeFunctions8[1]
 constexpr PTCHAR gszTreeFunctions8[] = {
-	_T("Sysenter HOOK")
+	_T("Sysenter HOOK"),
+	_T("重载内核")
 };
 
 
@@ -141,7 +147,9 @@ typedef struct _FILE_BOTH_DIR_INFORMATION {
 typedef struct _MyPath
 {
 	ULONG FileAttributes;		//文件属性
+	LARGE_INTEGER LastWriteTime;//修改日期
 	LARGE_INTEGER CreationTime;	//创建日期
+	LARGE_INTEGER EndOfFile;	//文件大小
 	CString szPath;				//文件路径
 }MyPath, * LPMyPath;
 #pragma endregion

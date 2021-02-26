@@ -145,12 +145,14 @@
   <ItemGroup>
     <ClCompile Include="CDisp.c" />
     <ClCompile Include="CMyFile.c" />
+    <ClCompile Include="CReNT.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header.h" />
     <ClInclude Include="CDisp.h" />
     <ClInclude Include="CMyFile.h" />
+    <ClInclude Include="CReNT.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

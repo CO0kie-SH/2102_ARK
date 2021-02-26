@@ -209,7 +209,9 @@ BOOL CR3R0::GetPath(vector<MyPath>& vPATHs)
 		//wprintf(L"%s\n", pDir->FileName);
 		vPATHs.push_back({
 			pDir->FileAttributes,
+			pDir->LastWriteTime,
 			pDir->CreationTime,
+			pDir->EndOfFile,
 			pDir->FileName});
 		ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
 	}
@@ -394,6 +396,94 @@ BOOL CR3R0::SYSHOOK()
 		|| ulRet == 0)
 	{
 		printf("开启HOOK失败[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
+}
+
+BOOL CR3R0::HidePID()
+{
+	return 0;
+}
+
+BOOL CR3R0::ExitPID(CEditView* pvEdit)
+{
+	ULONG ulRet = 0, dwPID = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	PWCH pStr = (PWCH)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "ExitPID");
+	CString str;
+	pvEdit->GetWindowTextW(str);
+	if (str == L"")
+	{
+		MessageBoxA(0, "请输入PID", 0, 0);
+		return 0;
+	}
+	pInfo->ulNum1 = _tstol(str.GetString());
+	printf("准备结束进程[%lu]\n", pInfo->ulNum1);
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("结束进程失败[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
+}
+
+BOOL CR3R0::CrtFile()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "CrtFile");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("创建文件失败[%lu]\n", ulRet);
+		return 0;
+	}
+	printf("文件内容：%s\n", pInfo->byBuf3);
+	return TRUE;
+}
+
+BOOL CR3R0::DelFile()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "DelFile");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("删除文件失败[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
+}
+
+BOOL CR3R0::RLoadNT()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "RLoadNT");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("重载内核失败[%lu]\n", ulRet);
 		return 0;
 	}
 	return TRUE;

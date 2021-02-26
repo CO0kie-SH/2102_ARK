@@ -275,6 +275,25 @@ void CMyView::InitList(vector<MySys>& vSYSs)
 	}
 }
 
+void SetStrTime(LARGE_INTEGER* pTime, CString& str)
+{
+	//char buf[128];
+		//SYSTEMTIME st;
+		//GetSystemTime(&st);
+		//FILETIME ft;
+		//SystemTimeToFileTime(&st, &ft);
+		//FILETIME转SYSTEMTIME
+	PFILETIME pft = (PFILETIME)pTime;
+	SYSTEMTIME st2;
+	FileTimeToSystemTime(pft, &st2);
+	st2.wHour += 8;
+	//memset(buf, 0, 128);
+	//sprintf_s(buf, "%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
+	//printf("时间：%s\n", buf);
+	str.Format(L"%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
+	//str.Format(_T("%llX"), PATH.CreationTime.QuadPart);
+}
+
 void CMyView::InitList(vector<MyPath> vPATHs)
 {
 	DWORD pMax = vPATHs.size();
@@ -293,21 +312,14 @@ void CMyView::InitList(vector<MyPath> vPATHs)
 		str.Format(_T("%lX"), PATH.FileAttributes);
 		this->pvList->SetItemText(i, 2, str);
 		this->pvList->SetItemText(i, 3, PATH.szPath);
-		//char buf[128];
-		//SYSTEMTIME st;
-		//GetSystemTime(&st);
-		//FILETIME ft;
-		//SystemTimeToFileTime(&st, &ft);
-		//FILETIME转SYSTEMTIME
-		PFILETIME pft = (PFILETIME)&PATH.CreationTime;
-		SYSTEMTIME st2;
-		FileTimeToSystemTime(pft, &st2);
-		st2.wHour += 8;
-		//memset(buf, 0, 128);
-		//sprintf_s(buf, "%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
-		//printf("时间：%s\n", buf);
-		str.Format(L"%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
-		//str.Format(_T("%llX"), PATH.CreationTime.QuadPart);
+		SetStrTime(&PATH.LastWriteTime, str);
+		this->pvList->SetItemText(i, 5, str);
+		SetStrTime(&PATH.CreationTime, str);
 		this->pvList->SetItemText(i, 6, str);
+		if (PATH.EndOfFile.LowPart)
+		{
+			str.Format(_T("%llu字节"), PATH.EndOfFile.QuadPart);
+			this->pvList->SetItemText(i, 4, str);
+		}
 	}
 }
