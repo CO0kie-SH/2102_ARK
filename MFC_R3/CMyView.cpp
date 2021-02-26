@@ -73,6 +73,14 @@ void CMyView::InitTree(HTREEITEM hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}break;
+	case 3: {	//文件功能区
+		for (DWORD i = 0; i < gnbTreeFunctions3; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions3[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
 	}
 }
 
@@ -107,6 +115,12 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("驱动名"), LVCFMT_LEFT, 123);
 		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
 		this->pvList->InsertColumn(0, _T("nLdr"), LVCFMT_LEFT, 88);
+		break;
+	case 31:									//遍历文件
+		this->pvList->InsertColumn(0, _T("创建日期"), LVCFMT_LEFT, 155);
+		this->pvList->InsertColumn(0, _T("文件名"), LVCFMT_LEFT, 99);
+		this->pvList->InsertColumn(0, _T("文件属性"), LVCFMT_LEFT, 60);
+		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 44);
 		break;
 	default:
 		break;
@@ -203,5 +217,42 @@ void CMyView::InitList(vector<MySys>& vSYSs)
 		this->pvList->SetItemText(i, 2, str);
 		this->pvList->SetItemText(i, 3, SYS.szExe);
 		this->pvList->SetItemText(i, 4, SYS.szPath);
+	}
+}
+
+void CMyView::InitList(vector<MyPath> vPATHs)
+{
+	DWORD pMax = vPATHs.size();
+	CString str;
+	this->pvList->DeleteAllItems();		//清空行
+
+	for (DWORD i = 0; i < pMax; i++)
+	{
+		auto& PATH = vPATHs[i];
+		str.Format(_T("%lu"), i + 1);
+		this->pvList->InsertItem(i, str);
+		str.Format(_T("%s"),
+			PATH.FileAttributes & FILE_ATTRIBUTE_DIRECTORY
+			? L"目录" : L"文件");
+		this->pvList->SetItemText(i, 1, str);
+		str.Format(_T("%lX"), PATH.FileAttributes);
+		this->pvList->SetItemText(i, 2, str);
+		this->pvList->SetItemText(i, 3, PATH.szPath);
+		//char buf[128];
+		//SYSTEMTIME st;
+		//GetSystemTime(&st);
+		//FILETIME ft;
+		//SystemTimeToFileTime(&st, &ft);
+		//FILETIME转SYSTEMTIME
+		PFILETIME pft = (PFILETIME)&PATH.CreationTime;
+		SYSTEMTIME st2;
+		FileTimeToSystemTime(pft, &st2);
+		st2.wHour += 8;
+		//memset(buf, 0, 128);
+		//sprintf_s(buf, "%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
+		//printf("时间：%s\n", buf);
+		str.Format(L"%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
+		//str.Format(_T("%llX"), PATH.CreationTime.QuadPart);
+		this->pvList->SetItemText(i, 4, str);
 	}
 }

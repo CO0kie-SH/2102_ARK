@@ -181,3 +181,63 @@ BOOL CR3R0::GetSyss(vector<MySys>& vSYSs)
 	}
 	return TRUE;
 }
+
+BOOL CR3R0::GetPath(vector<MyPath>& vPATHs)
+{
+	ULONG ulRet = 0, count = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pDir = (PFILE_BOTH_DIR_INFORMATION)pInfo->byBuf3;
+	ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetPath");
+	wsprintfW((LPWSTR)pInfo->byBuf2, L"%s", L"\\??\\C:\\Windows\\");
+
+	while (true)
+	{
+		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+		{
+			printf("读取目录失败\n");
+			return FALSE;
+		}
+		else if (ulRet == 0)	//尾部结束
+		{
+			printf("目录尾部结束。共有目录数[%lu]。\n", pInfo->ulNum1);
+			break;
+		}
+		//printf("%lu [%lX]->", ulRet, pInfo->ulNum2);
+		//wprintf(L"%s\n", pDir->FileName);
+		vPATHs.push_back({
+			pDir->FileAttributes,
+			pDir->CreationTime,
+			pDir->FileName});
+		ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
+	}
+	return TRUE;
+}
+
+BOOL CR3R0::GetIDTs()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pIDT = (LPMyIDT)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetIDTs");
+
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet == 0x100)
+	{
+		for (ULONG i = 0; i < 0x100; i++)
+		{
+			printf("%3lu Addr[%p] selector: %d, GateType:%d, DPL: %d\n",
+				i + 1, pIDT->Addr[i],
+				pIDT->IDT[i].uSelector,// 段选择子
+				pIDT->IDT[i].GateType,//类型
+				pIDT->IDT[i].DPL);//特权等级
+		}
+		return;
+	}
+	printf("读取IDT表失败\n");
+}

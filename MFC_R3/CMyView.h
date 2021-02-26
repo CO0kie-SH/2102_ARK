@@ -20,6 +20,7 @@ public:
 	void InitList(DWORD ID);
 	void InitList(vector<MyProcess3>& vPIDs, DWORD ID, DWORD PID);
 	void InitList(vector<MySys>& vSYSs);
+	void InitList(vector<MyPath> vPATHs);
 private:
 	DWORD mListLastId;
 	CString mStr;

@@ -29,7 +29,7 @@ BOOL CCtrl::InitCtrl(CMyView* pcView)
 	pfnZwQuerySystemInformation = (PFN_NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtDll, "ZwQuerySystemInformation");
 	if (pfnZwQuerySystemInformation == 0)
 		ExitProcess(5);
-	this->TreeFun(21);
+	this->TreeFun(31);
 	return TRUE;
 }
 
@@ -149,6 +149,23 @@ void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 		{
 			this->pcView->InitList(ID);
 			this->pcView->InitList(vSYSs);
+		}
+		else
+		{
+			MessageBoxA(0, "获取驱动失败。", 0, 0);
+		}
+	}break;
+	//遍历文件
+	case 31: {
+		vector<MyPath> vPATHs;
+		if (this->pcR3R0->GetPath(vPATHs))
+		{
+			this->pcView->InitList(ID);
+			this->pcView->InitList(vPATHs);
+		}
+		else
+		{
+			MessageBoxA(0, "获取文件失败。", 0, 0);
 		}
 	}break;
 	default: break;
