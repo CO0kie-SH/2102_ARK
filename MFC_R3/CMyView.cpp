@@ -64,9 +64,15 @@ void CMyView::InitTree(HTREEITEM hTree)
 			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
 			m_tLeafs[tmp.htTree] = tmp;
 		}
-	}return;
-	default:
-		break;
+	}break;
+	case 2: {	//驱动功能区
+		for (DWORD i = 0; i < gnbTreeFunctions2; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions2[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
 	}
 }
 
@@ -84,7 +90,7 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("PPID"), LVCFMT_LEFT, 55);
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 55);
 		break;
-	case 12:									//遍历模块
+	case 12:									//遍历线程
 		this->pvList->InsertColumn(0, _T("线程ETHREAD"), LVCFMT_LEFT, 111);
 		//this->pvList->InsertColumn(0, _T("模块名"), LVCFMT_LEFT, 123);
 		this->pvList->InsertColumn(0, _T("TID"), LVCFMT_LEFT, 88);
@@ -142,7 +148,7 @@ void CMyView::InitList(vector<MyProcess3>& vPIDs, DWORD ID, DWORD PID)
 				this->pvList->SetItemText(j, 1, str);
 				str.Format(_T("%lu"), Th.TID);
 				this->pvList->SetItemText(j, 2, str);
-				str.Format(_T("0x%08lX"), Th.pETHREAD);
+				str.Format(_T("0x%p"), Th.pETHREAD);
 				this->pvList->SetItemText(j, 3, str);
 			}
 			break;

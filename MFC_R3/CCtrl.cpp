@@ -55,9 +55,10 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	auto& tLeafs = this->pcView->m_tLeafs;
 	auto& tInfo = tLeafs[hTree];
 	if (tInfo.uiDeep != 1)	return;
-	else if (tInfo.str == gszTreeCtrl遍历进程)
+	printf("用户点击了[%d][%d]\t", tInfo.uiDeep, tInfo.uiNumb);
+	wprintf(L"%s\n", tInfo.str);
+	if (tInfo.str == gszTreeCtrl遍历进程)
 	{
-		puts("用户点击了遍历进程。");
 		//if (this->pcR3R0->GetPIDs(this->pcData->vPIDs))
 		//{
 		//	this->pcView->InitList(11);
@@ -71,13 +72,15 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	}
 	else if (tInfo.str == gszTreeCtrl线程操作)
 	{
-		puts("用户点击了线程操作。");
 		this->TreeFun(12);
 	}
 	else if (tInfo.str == gszTreeCtrl模块操作)
 	{
-		puts("用户点击了模块操作。");
 		this->TreeFun(13);
+	}
+	else if (tInfo.str == gszTreeCtrl遍历驱动)
+	{
+		this->TreeFun(21);
 	}
 }
 

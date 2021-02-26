@@ -10,6 +10,7 @@ CData::CData()
 	freopen_s(&pFile, "CON", "r", stdin);
 	freopen_s(&pFile, "CON", "w", stdout);
 	freopen_s(&pFile, "CON", "w", stderr);
+	setlocale(LC_ALL, "chs");
 	puts("CData()");
 
 	this->mPID = GetCurrentProcessId();

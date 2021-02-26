@@ -35,7 +35,7 @@ constexpr PTCHAR gszTreeFunctions[] = {
 	_T("PDB功能区")
 };
 
-#define gnbTreeFunctions1					3	// 二级菜单
+#define gnbTreeFunctions1					5	// 二级菜单
 #define gszTreeCtrl遍历进程	gszTreeFunctions1[0]
 #define gszTreeCtrl线程操作	gszTreeFunctions1[1]
 #define gszTreeCtrl模块操作	gszTreeFunctions1[2]
@@ -43,6 +43,15 @@ constexpr PTCHAR gszTreeFunctions1[] = {
 	_T("遍历进程"),
 	_T("线程操作"),
 	_T("模块操作"),
+	_T("隐藏进程"),
+	_T("结束操作")
+};
+
+#define gnbTreeFunctions2					2	// 二级菜单
+#define gszTreeCtrl遍历驱动	gszTreeFunctions2[0]
+constexpr PTCHAR gszTreeFunctions2[] = {
+	_T("遍历驱动"),
+	_T("隐藏驱动")
 };
 
 

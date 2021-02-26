@@ -78,17 +78,17 @@ BOOL CR3R0::GetTIDs(vector<MyProcess3>& vPIDs)
 	{
 		auto& Pro = vPIDs[i];
 		DWORD PID = Pro.tPID;
-		printf("进程PID[%6lu]\n", PID);
+		//printf("进程PID[%6lu]\n", PID);
 		for (DWORD j = 0; j < ths; j++)
 		{
 			auto& th = vTHs[j];
 			if (th.PID == PID)
 			{
-				printf("%lu ", th.TID);
+				//printf("%lu ", th.TID);
 				Pro.vTHs.push_back(th);
 			}
 		}
-		printf("\n");
+		//printf("\n");
 	}
 	return TRUE;
 }
