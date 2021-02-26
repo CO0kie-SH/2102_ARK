@@ -81,6 +81,12 @@ constexpr PTCHAR gszTreeFunctions7[] = {
 	_T("遍历SSDT表")
 };
 
+#define gnbTreeFunctions8					1	// 二级菜单
+#define gszTreeCtrlHOOKs	gszTreeFunctions8[0]
+constexpr PTCHAR gszTreeFunctions8[] = {
+	_T("Sysenter HOOK")
+};
+
 
 #pragma region 进程相关结构
 typedef struct _MyMod
@@ -147,6 +153,7 @@ public:
 	DWORD mTID;
 	HWND hMFC;
 	HWND hCon;
+	MyHOOKs HOOKs;
 	vector<MyProcess3> vPIDs;
 public:
 	CData();

@@ -190,6 +190,8 @@ ULONG_PTR GetGDTs(LPMyInfoSend pInfo);
 ULONG_PTR GetSSDT(LPMyInfoSend pInfo);
 // Òþ²ØÇý¶¯
 ULONG_PTR SetSYSf(LPMyInfoSend pInfo);
+// HOOK
+ULONG_PTR SYSHOOK(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;

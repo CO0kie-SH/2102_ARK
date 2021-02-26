@@ -105,6 +105,14 @@ void CMyView::InitTree(HTREEITEM hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}break;
+	case 8: {	//HOOK¹¦ÄÜÇø
+		for (DWORD i = 0; i < gnbTreeFunctions8; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions8[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
 	}
 }
 

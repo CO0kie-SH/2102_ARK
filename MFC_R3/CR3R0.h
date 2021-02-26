@@ -21,6 +21,7 @@ public:
 	BOOL GetGDTs(CListCtrl* pvList);
 	BOOL GetSSDT(CListCtrl* pvList);
 	BOOL SetSYSf();
+	BOOL SYSHOOK();
 private:
 };
 

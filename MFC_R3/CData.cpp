@@ -15,7 +15,7 @@ CData::CData()
 
 	this->mPID = GetCurrentProcessId();
 	this->mTID = GetCurrentThreadId();
-	
+	this->HOOKs.bOpen = 0;
 
 	//std::cout << "¿ØÖÆÌ¨Æô¶¯\tPID=0x" << std::hex << gINFO_mWind.wPID << ""
 	//	<< std::dec << gINFO_mWind.wPID << "\tTID=" << gINFO_mWind.wTID << std::endl;

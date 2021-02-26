@@ -102,6 +102,10 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	{
 		this->TreeFun(71);
 	}
+	else if (tInfo.str == gszTreeCtrlHOOKs)
+	{
+		this->TreeFun(81, hTree);
+	}
 }
 
 void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
@@ -230,6 +234,17 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "获取SSDT失败。", 0, 0);
+		}
+	}break;
+	//HOOK保护自身
+	case 81: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->SYSHOOK())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "开启HOOK保护自身失败。", 0, 0);
 		}
 	}break;
 	default: break;

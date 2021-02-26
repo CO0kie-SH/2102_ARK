@@ -172,6 +172,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		KdPrint(("比较: %s %s %lu->隐藏驱动\n", FunName, "SetSYSf", uRet));
 		return SetSYSf(pInfo);
 	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "SYSHOOK", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->HOOK\n", FunName, "SYSHOOK", uRet));
+		return SYSHOOK(pInfo);
+	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
 }
@@ -577,4 +582,10 @@ ULONG_PTR SetSYSf(LPMyInfoSend pInfo)
 	current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
 	current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
 	return gSYSf++;
+}
+
+ULONG_PTR SYSHOOK(LPMyInfoSend pInfo)
+{
+	UNREFERENCED_PARAMETER(pInfo);
+	return 0;
 }

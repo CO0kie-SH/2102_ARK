@@ -378,3 +378,22 @@ BOOL CR3R0::SetSYSf()
 	}
 	return TRUE;
 }
+
+BOOL CR3R0::SYSHOOK()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	LPMyHOOKs pHOOKs = (LPMyHOOKs)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "SYSHOOK");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("¿ªÆôHOOKÊ§°Ü[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
+}

@@ -72,8 +72,13 @@ typedef struct _GDT_ENTRY
 	UINT64 D_B : 1;
 	UINT64 G : 1;
 }GDT_ENTRY, * PGDT_ENTRY;
-
 #pragma endregion
 
+#pragma region 功能状态结构
+typedef struct _MyHOOKs
+{
+	ULONG bOpen;
+}MyHOOKs, * LPMyHOOKs;
+#pragma endregion
 
 
