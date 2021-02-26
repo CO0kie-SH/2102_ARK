@@ -387,6 +387,7 @@ BOOL CR3R0::SYSHOOK()
 	ZeroMemory(pInfo, sizeof(MyInfoSend));
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
+	pInfo->ulNum1 = pcData->mPID;
 	strcpy_s(pInfo->byBuf1, "SYSHOOK");
 
 	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)

@@ -145,10 +145,13 @@ NTSTATUS WriteDispath(
 												// 短时间内不会用到，可以放置到页交换文件中
 VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 {
-	KdPrint(("\n驱动卸载(%p)\n", DriverObject));
+	KdPrint(("\n驱动卸载(%p) HOOK(%lX)\n", DriverObject, OriginalAddress));
 	// 如果设备对象创建成功，那么需要在卸载函数中删除设备对象和符号链接名称
 	// 必须要先删除符号链接名，再删除设备对象，否则会出现不可描述的问题
-
+	if (OriginalAddress)
+	{
+		UnHook();
+	}
 	// 删除符号链接名
 	UNICODE_STRING SymLinkName = { 0 };
 	RtlInitUnicodeString(&SymLinkName, SYMBOLICLINE_NAME);

@@ -195,4 +195,5 @@ ULONG_PTR SYSHOOK(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;
-
+extern ULONG OriginalAddress;
+VOID UnHook();

@@ -44,7 +44,8 @@ VOID ListCurrentProcessAndThread()
 
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
-ULONG gSYSf = 0;
+ULONG gSYSf = 0, kID = 0, kPID = 0, hookPID = 0;
+ULONG OriginalAddress = 0;
 
 //1.使用汇编的方法读取内核函数的地址
 ULONG GetFunctionAddr_ASM(PKSYSTEM_SERVICE_TABLE KeServiceDescriptorTable, LONG lgSsdtIndex)
@@ -584,8 +585,76 @@ ULONG_PTR SetSYSf(LPMyInfoSend pInfo)
 	return gSYSf++;
 }
 
+
+
+void kOpen()
+{
+	__asm
+	{
+		mov eax, [edx + 0x14];	// 获取第四个参数 ClientId
+		mov eax, [eax];
+		mov kPID, eax;
+	}
+	if (hookPID && hookPID == kPID)
+	{
+		_asm mov[edx + 0x0c], 0;
+		KdPrint(("Open [%lu]\n", kPID));
+	}
+}
+
+__declspec(naked)FakeAddress()
+{
+	__asm
+	{
+		mov kID, eax
+		pushad
+		push fs
+		push 0x30
+		pop fs
+	}
+	if (kID == 0x0BE)
+		kOpen();
+	_asm
+	{
+		pop fs
+		popad
+		jmp[OriginalAddress]
+	}
+}
+
+VOID
+Hook()
+{
+	_asm
+	{
+		mov ecx, 0x176
+		rdmsr
+		mov OriginalAddress, eax
+		mov eax, FakeAddress
+		wrmsr
+	}
+	KdPrint(("HOOK安装(%lX)\n", OriginalAddress));
+}
+
+VOID
+UnHook()
+{
+	KdPrint(("HOOK卸载(%lX)\n", OriginalAddress));
+	KIRQL oldIrql = KeRaiseIrqlToDpcLevel();
+	_asm
+	{
+		mov ecx, 0x176
+		mov eax, OriginalAddress
+		wrmsr
+	}
+	KeLowerIrql(oldIrql);
+}
+
 ULONG_PTR SYSHOOK(LPMyInfoSend pInfo)
 {
-	UNREFERENCED_PARAMETER(pInfo);
-	return 0;
+	//UNREFERENCED_PARAMETER(pInfo);
+	hookPID = pInfo->ulNum1;
+	if (OriginalAddress == 0)
+		Hook();
+	return hookPID;
 }
