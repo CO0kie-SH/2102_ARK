@@ -29,7 +29,7 @@ BOOL CCtrl::InitCtrl(CMyView* pcView)
 	pfnZwQuerySystemInformation = (PFN_NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtDll, "ZwQuerySystemInformation");
 	if (pfnZwQuerySystemInformation == 0)
 		ExitProcess(5);
-	this->TreeFun(11);
+	this->TreeFun(21);
 	return TRUE;
 }
 
@@ -140,6 +140,15 @@ void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "获取模块失败。", 0, 0);
+		}
+	}break;
+	//遍历驱动
+	case 21: {
+		vector<MySys> vSYSs;
+		if (this->pcR3R0->GetSyss(vSYSs))
+		{
+			this->pcView->InitList(ID);
+			this->pcView->InitList(vSYSs);
 		}
 	}break;
 	default: break;

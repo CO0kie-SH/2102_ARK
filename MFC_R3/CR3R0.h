@@ -15,6 +15,7 @@ public:
 	BOOL GettPID(vector<MyProcess3>& vPIDs);
 	BOOL GetTIDs(vector<MyProcess3>& vPIDs);
 	BOOL GetMODs(vector<MyProcess3>& vPIDs, DWORD PID = 0);
+	BOOL GetSyss(vector<MySys>& vSYSs);
 private:
 };
 

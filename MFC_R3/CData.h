@@ -76,6 +76,15 @@ typedef struct _MyProcess3
 }MyProcess3, * LPMyProcess3;
 #pragma endregion
 
+#pragma region 驱动相关结构
+typedef struct _MySys
+{
+	ULONG Base;		//驱动基址
+	ULONG pNextLdr;	//下一个Ldr链
+	CString szExe;	//Exe名
+	CString szPath;	//驱动路径
+}MySys, * LPMySys;
+#pragma endregion
 
 class CData
 {

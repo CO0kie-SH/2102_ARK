@@ -148,3 +148,36 @@ BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs, DWORD PID /*= 0*/)
 	} while (++i < dwSize);
 	return TRUE;
 }
+
+BOOL CR3R0::GetSyss(vector<MySys>& vSYSs)
+{
+	ULONG ulRet = 0, count = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetSyss");
+
+	while (true)
+	{
+		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+		{
+			printf("读取模块失败\n");
+			return FALSE;
+		}
+		else if (ulRet == 0)	//尾部结束
+		{
+			printf("驱动尾部结束。共有驱动数[%lu]。\n", count);
+			break;
+		}
+		vSYSs.push_back({ pInfo->ulNum2,ulRet });
+		auto& SYS = vSYSs[count];
+		SYS.szExe = (PWCH)pInfo->byBuf2;
+		SYS.szPath = (PWCH)pInfo->byBuf3;
+		count++;
+		//printf("%3lu [%lX][%p][%2d]%20S %S\n", count, ulRet, (PCH)pInfo->ulNum2,
+		//	pInfo->ulNum1, (PWCH)pInfo->byBuf2, (PWCH)pInfo->byBuf3);
+		pInfo->ulNum1 = ulRet;
+	}
+	return TRUE;
+}

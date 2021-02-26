@@ -102,6 +102,12 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 66);
 		break;
+	case 21:									//遍历驱动
+		this->pvList->InsertColumn(0, _T("驱动路径"), LVCFMT_LEFT, 222);
+		this->pvList->InsertColumn(0, _T("驱动名"), LVCFMT_LEFT, 123);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("nLdr"), LVCFMT_LEFT, 88);
+		break;
 	default:
 		break;
 	}
@@ -178,4 +184,24 @@ void CMyView::InitList(vector<MyProcess3>& vPIDs, DWORD ID, DWORD PID)
 		break;
 	}
 
+}
+
+void CMyView::InitList(vector<MySys>& vSYSs)
+{
+	DWORD sMax = vSYSs.size();
+	CString str;
+	this->pvList->DeleteAllItems();		//清空行
+
+	for (DWORD i = 0; i < sMax; i++)
+	{
+		auto& SYS = vSYSs[i];
+		str.Format(_T("%lu"), i + 1);
+		this->pvList->InsertItem(i, str);
+		str.Format(_T("0x%08lX"), SYS.pNextLdr);
+		this->pvList->SetItemText(i, 1, str);
+		str.Format(_T("0x%08lX"), SYS.Base);
+		this->pvList->SetItemText(i, 2, str);
+		this->pvList->SetItemText(i, 3, SYS.szExe);
+		this->pvList->SetItemText(i, 4, SYS.szPath);
+	}
 }

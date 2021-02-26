@@ -19,6 +19,7 @@ public:
 	void InitTree(HTREEITEM hTree);
 	void InitList(DWORD ID);
 	void InitList(vector<MyProcess3>& vPIDs, DWORD ID, DWORD PID);
+	void InitList(vector<MySys>& vSYSs);
 private:
 	DWORD mListLastId;
 	CString mStr;
