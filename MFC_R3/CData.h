@@ -62,6 +62,24 @@ constexpr PTCHAR gszTreeFunctions3[] = {
 	_T("删除文件")
 };
 
+#define gnbTreeFunctions5					1	// 二级菜单
+#define gszTreeCtrl遍历IDT	gszTreeFunctions5[0]
+constexpr PTCHAR gszTreeFunctions5[] = {
+	_T("遍历IDT表")
+};
+
+#define gnbTreeFunctions6					1	// 二级菜单
+#define gszTreeCtrl遍历GDT	gszTreeFunctions6[0]
+constexpr PTCHAR gszTreeFunctions6[] = {
+	_T("遍历GDT表")
+};
+
+#define gnbTreeFunctions7					1	// 二级菜单
+#define gszTreeCtrl遍历SSDT	gszTreeFunctions7[0]
+constexpr PTCHAR gszTreeFunctions7[] = {
+	_T("遍历SSDT表")
+};
+
 
 #pragma region 进程相关结构
 typedef struct _MyMod

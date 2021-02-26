@@ -17,7 +17,9 @@ public:
 	BOOL GetMODs(vector<MyProcess3>& vPIDs, DWORD PID = 0);
 	BOOL GetSyss(vector<MySys>& vSYSs);
 	BOOL GetPath(vector<MyPath>& vPATHs);
-	BOOL GetIDTs();
+	BOOL GetIDTs(CListCtrl* pvList);
+	BOOL GetGDTs(CListCtrl* pvList);
+	BOOL GetSSDT(CListCtrl* pvList);
 private:
 };
 

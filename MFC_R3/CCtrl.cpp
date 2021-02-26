@@ -29,7 +29,7 @@ BOOL CCtrl::InitCtrl(CMyView* pcView)
 	pfnZwQuerySystemInformation = (PFN_NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtDll, "ZwQuerySystemInformation");
 	if (pfnZwQuerySystemInformation == 0)
 		ExitProcess(5);
-	this->TreeFun(31);
+	this->TreeFun(71);
 	return TRUE;
 }
 
@@ -81,6 +81,22 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	else if (tInfo.str == gszTreeCtrl遍历驱动)
 	{
 		this->TreeFun(21);
+	}
+	else if (tInfo.str == gszTreeCtrl遍历文件)
+	{
+		this->TreeFun(31);
+	}
+	else if (tInfo.str == gszTreeCtrl遍历IDT)
+	{
+		this->TreeFun(51);
+	}
+	else if (tInfo.str == gszTreeCtrl遍历GDT)
+	{
+		this->TreeFun(61);
+	}
+	else if (tInfo.str == gszTreeCtrl遍历SSDT)
+	{
+		this->TreeFun(71);
 	}
 }
 
@@ -166,6 +182,39 @@ void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "获取文件失败。", 0, 0);
+		}
+	}break;
+	//遍历IDT
+	case 51: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->GetIDTs(this->pcView->pvList))
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "获取IDT失败。", 0, 0);
+		}
+	}break;
+	//遍历GDT
+	case 61: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->GetGDTs(this->pcView->pvList))
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "获取GDT失败。", 0, 0);
+		}
+	}break;
+	//遍历SSDT
+	case 71: {
+		this->pcView->InitList(ID);
+		if (this->pcR3R0->GetSSDT(this->pcView->pvList))
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "获取SSDT失败。", 0, 0);
 		}
 	}break;
 	default: break;

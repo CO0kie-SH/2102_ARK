@@ -216,7 +216,7 @@ BOOL CR3R0::GetPath(vector<MyPath>& vPATHs)
 	return TRUE;
 }
 
-BOOL CR3R0::GetIDTs()
+BOOL CR3R0::GetIDTs(CListCtrl* pvList)
 {
 	ULONG ulRet = 0;
 	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
@@ -225,19 +225,136 @@ BOOL CR3R0::GetIDTs()
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
 	strcpy_s(pInfo->byBuf1, "GetIDTs");
+	CString str;
 
 	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
 		&& ulRet == 0x100)
 	{
 		for (ULONG i = 0; i < 0x100; i++)
 		{
-			printf("%3lu Addr[%p] selector: %d, GateType:%d, DPL: %d\n",
-				i + 1, pIDT->Addr[i],
-				pIDT->IDT[i].uSelector,// 段选择子
-				pIDT->IDT[i].GateType,//类型
-				pIDT->IDT[i].DPL);//特权等级
+			str.Format(_T("%lu"), i + 1);
+			pvList->InsertItem(i, str);
+			str.Format(_T("0x%p"), pIDT->Addr[i]);
+			pvList->SetItemText(i, 1, str);
+			str.Format(_T("%d"), pIDT->IDT[i].uSelector);
+			pvList->SetItemText(i, 2, str);
+			// 类型
+			switch (pIDT->IDT[i].GateType)
+			{
+			case 05: str = L"任务门"; break;
+			case 14: str = L"中断门"; break;
+			case 15: str = L"陷阱门"; break;
+			default:
+				str = L"未知门";
+				break;
+			}
+			str.AppendFormat(L"%d", pIDT->IDT[i].GateType);
+			//str.Format(_T("%d"), pIDT->IDT[i].GateType);
+			pvList->SetItemText(i, 3, str);
+			str.Format(_T("%d"), pIDT->IDT[i].DPL);
+			pvList->SetItemText(i, 4, str);
+			//printf("%3lu Addr[%p] selector: %d, GateType:%d, DPL: %d\n",
+			//	i + 1, pIDT->Addr[i],
+			//	pIDT->IDT[i].uSelector,//段选择子
+			//	pIDT->IDT[i].GateType,//类型
+			//	pIDT->IDT[i].DPL);//特权等级
 		}
-		return;
+		return TRUE;
 	}
 	printf("读取IDT表失败\n");
+	return FALSE;
+}
+
+BOOL CR3R0::GetGDTs(CListCtrl* pvList)
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	auto pGDT = (LPMyGDT)pInfo->byBuf3;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetGDTs");
+	CString str;
+
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet > 0)
+	{
+		for (ULONG i = 0; i < ulRet; i++)
+		{
+			PSHORT sGDT = (PSHORT)&pGDT->uGDT[i];
+			PGDT_ENTRY eGDT = (PGDT_ENTRY)sGDT;
+
+			ULONG Addr = MAKELONG(sGDT[0], sGDT[3]);
+			UCHAR P = eGDT->P,
+				S = eGDT->S,
+				G = eGDT->G;
+
+			str.Format(_T("%lu"), i + 1);
+			pvList->InsertItem(i, str);
+			str.Format(_T("%p"), pGDT->Addr[i]);
+			pvList->SetItemText(i, 1, str);
+			str.Format(_T("%016llX"), pGDT->uGDT[i]);
+			pvList->SetItemText(i, 2, str);
+			str.Format(_T("%08lX"), Addr);
+			pvList->SetItemText(i, 4, str);
+			str.Format(_T("%d"), P);
+			pvList->SetItemText(i, 5, str);
+			str.Format(_T("%d"), S);
+			pvList->SetItemText(i, 6, str);
+			str.Format(_T("%d"), G);
+			pvList->SetItemText(i, 7, str);
+			// 类型
+			if (S == 0)
+			{
+				if (eGDT->Type == 12)
+					str = L"调用门";  // 调用门
+				else
+					str = L"未知门";  // 未知类型
+			}
+			else
+			{
+				if (eGDT->Type < 8)
+					str = L"数据段";  // 数据段
+				else
+					str = L"代码段";  // 代码段
+			}
+			pvList->SetItemText(i, 3, str);
+			//printf("%3lu [%p] %016llX 段偏移 0x%08X P=%d S=%d G=%d\n",
+			//	i + 1, pGDT->Addr[i], pGDT->uGDT[i],
+			//	Addr, P, S, G);
+		}
+		return TRUE;
+	}
+	printf("读取GDT表失败\n");
+	return 0;
+}
+
+BOOL CR3R0::GetSSDT(CListCtrl* pvList)
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "GetSSDT");
+	CString str;
+
+	if (ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet > 0)
+	{
+		for (ULONG i = 0, *Addr = (ULONG*)pInfo->byBuf3;
+			i < ulRet; i++)
+		{
+
+			str.Format(_T("%lu"), i + 1);
+			pvList->InsertItem(i, str);
+			str.Format(_T("%lX"), Addr[i]);
+			pvList->SetItemText(i, 1, str);
+			printf("%3lu [%08lX]\n",
+				i + 1, Addr[i]);
+		}
+		return TRUE;
+	}
+	printf("读取SSDT表失败\n");
+	return 0;
 }

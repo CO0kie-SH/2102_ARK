@@ -81,6 +81,22 @@ void CMyView::InitTree(HTREEITEM hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}break;
+	case 5: {	//IDT功能区
+		for (DWORD i = 0; i < gnbTreeFunctions5; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions5[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
+	case 6: {	//GDT功能区
+		for (DWORD i = 0; i < gnbTreeFunctions6; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions6[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
 	}
 }
 
@@ -121,6 +137,27 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("文件名"), LVCFMT_LEFT, 99);
 		this->pvList->InsertColumn(0, _T("文件属性"), LVCFMT_LEFT, 60);
 		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 44);
+		break;
+	case 51:									//遍历IDT
+		this->pvList->DeleteAllItems();			//清空行
+		this->pvList->InsertColumn(0, _T("DPL"), LVCFMT_LEFT, 50);
+		this->pvList->InsertColumn(0, _T("GateType"), LVCFMT_LEFT, 66);
+		this->pvList->InsertColumn(0, _T("selector"), LVCFMT_LEFT, 66);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
+		break;
+	case 61:									//遍历GDT
+		this->pvList->DeleteAllItems();			//清空行
+		this->pvList->InsertColumn(0, _T("G"), LVCFMT_LEFT, 22);
+		this->pvList->InsertColumn(0, _T("S"), LVCFMT_LEFT, 22);
+		this->pvList->InsertColumn(0, _T("P"), LVCFMT_LEFT, 22);
+		this->pvList->InsertColumn(0, _T("偏移"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 66);
+		this->pvList->InsertColumn(0, _T("INFO"), LVCFMT_LEFT, 155);
+		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 88);
+		break;
+	case 71:									//遍历GDT
+		this->pvList->DeleteAllItems();			//清空行
+		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 88);
 		break;
 	default:
 		break;
