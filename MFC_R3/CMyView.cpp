@@ -97,6 +97,14 @@ void CMyView::InitTree(HTREEITEM hTree)
 			m_tLeafs[tmp.htTree] = tmp;
 		}
 	}break;
+	case 7: {	//SSDT功能区
+		for (DWORD i = 0; i < gnbTreeFunctions7; i++)
+		{
+			tmp = { nowTree.uiDeep + 1,i + 1,gszTreeFunctions7[i], hTree };
+			tmp.htTree = vTree.InsertItem(tmp.str, hTree);
+			m_tLeafs[tmp.htTree] = tmp;
+		}
+	}break;
 	}
 }
 
@@ -115,7 +123,7 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 55);
 		break;
 	case 12:									//遍历线程
-		this->pvList->InsertColumn(0, _T("线程ETHREAD"), LVCFMT_LEFT, 111);
+		this->pvList->InsertColumn(0, _T("线程ETHREAD"), LVCFMT_LEFT, 123);
 		//this->pvList->InsertColumn(0, _T("模块名"), LVCFMT_LEFT, 123);
 		this->pvList->InsertColumn(0, _T("TID"), LVCFMT_LEFT, 88);
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 66);
@@ -123,41 +131,43 @@ void CMyView::InitList(DWORD ID)
 	case 13:									//遍历模块
 		this->pvList->InsertColumn(0, _T("模块路径"), LVCFMT_LEFT, 222);
 		//this->pvList->InsertColumn(0, _T("模块名"), LVCFMT_LEFT, 123);
-		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 123);
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 66);
 		break;
 	case 21:									//遍历驱动
 		this->pvList->InsertColumn(0, _T("驱动路径"), LVCFMT_LEFT, 222);
 		this->pvList->InsertColumn(0, _T("驱动名"), LVCFMT_LEFT, 123);
-		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
-		this->pvList->InsertColumn(0, _T("nLdr"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 123);
+		this->pvList->InsertColumn(0, _T("nLdr"), LVCFMT_LEFT, 123);
 		break;
 	case 31:									//遍历文件
-		this->pvList->InsertColumn(0, _T("创建日期"), LVCFMT_LEFT, 155);
-		this->pvList->InsertColumn(0, _T("文件名"), LVCFMT_LEFT, 99);
-		this->pvList->InsertColumn(0, _T("文件属性"), LVCFMT_LEFT, 60);
-		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 44);
+		this->pvList->InsertColumn(0, _T("创建日期"), LVCFMT_LEFT, 222);
+		this->pvList->InsertColumn(0, _T("修改日期"), LVCFMT_LEFT, 222);
+		this->pvList->InsertColumn(0, _T("文件大小"), LVCFMT_LEFT, 100);
+		this->pvList->InsertColumn(0, _T("文件名"), LVCFMT_LEFT, 123);
+		this->pvList->InsertColumn(0, _T("文件属性"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 55);
 		break;
 	case 51:									//遍历IDT
 		this->pvList->DeleteAllItems();			//清空行
 		this->pvList->InsertColumn(0, _T("DPL"), LVCFMT_LEFT, 50);
-		this->pvList->InsertColumn(0, _T("GateType"), LVCFMT_LEFT, 66);
-		this->pvList->InsertColumn(0, _T("selector"), LVCFMT_LEFT, 66);
-		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("GateType"), LVCFMT_LEFT, 99);
+		this->pvList->InsertColumn(0, _T("selector"), LVCFMT_LEFT, 99);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 123);
 		break;
 	case 61:									//遍历GDT
 		this->pvList->DeleteAllItems();			//清空行
 		this->pvList->InsertColumn(0, _T("G"), LVCFMT_LEFT, 22);
 		this->pvList->InsertColumn(0, _T("S"), LVCFMT_LEFT, 22);
 		this->pvList->InsertColumn(0, _T("P"), LVCFMT_LEFT, 22);
-		this->pvList->InsertColumn(0, _T("偏移"), LVCFMT_LEFT, 88);
-		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 66);
-		this->pvList->InsertColumn(0, _T("INFO"), LVCFMT_LEFT, 155);
-		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("偏移"), LVCFMT_LEFT, 99);
+		this->pvList->InsertColumn(0, _T("类型"), LVCFMT_LEFT, 77);
+		this->pvList->InsertColumn(0, _T("INFO"), LVCFMT_LEFT, 177);
+		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 123);
 		break;
 	case 71:									//遍历GDT
 		this->pvList->DeleteAllItems();			//清空行
-		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("Addr"), LVCFMT_LEFT, 123);
 		break;
 	default:
 		break;
@@ -290,6 +300,6 @@ void CMyView::InitList(vector<MyPath> vPATHs)
 		//printf("时间：%s\n", buf);
 		str.Format(L"%04d-%02d-%02d %02d:%02d:%02d:%03d", st2.wYear, st2.wMonth, st2.wDay, st2.wHour, st2.wMinute, st2.wSecond, st2.wMilliseconds);
 		//str.Format(_T("%llX"), PATH.CreationTime.QuadPart);
-		this->pvList->SetItemText(i, 4, str);
+		this->pvList->SetItemText(i, 6, str);
 	}
 }

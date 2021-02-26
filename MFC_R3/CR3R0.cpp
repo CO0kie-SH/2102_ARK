@@ -269,7 +269,7 @@ BOOL CR3R0::GetGDTs(CListCtrl* pvList)
 {
 	ULONG ulRet = 0;
 	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
-	auto pGDT = (LPMyGDT)pInfo->byBuf3;
+	auto uInfo = (PULONGLONG)pInfo->byBuf3;
 	ZeroMemory(pInfo, sizeof(MyInfoSend));
 	pInfo->ulSize = 4096;
 	pInfo->ulBuff = 4000;
@@ -281,19 +281,18 @@ BOOL CR3R0::GetGDTs(CListCtrl* pvList)
 	{
 		for (ULONG i = 0; i < ulRet; i++)
 		{
-			PSHORT sGDT = (PSHORT)&pGDT->uGDT[i];
+			PSHORT sGDT = (PSHORT)&uInfo[i];
 			PGDT_ENTRY eGDT = (PGDT_ENTRY)sGDT;
-
-			ULONG Addr = MAKELONG(sGDT[0], sGDT[3]);
+			ULONG Base = pInfo->ulNum1 + i * 4,
+				Addr = MAKELONG(sGDT[0], sGDT[3]);
 			UCHAR P = eGDT->P,
 				S = eGDT->S,
 				G = eGDT->G;
-
 			str.Format(_T("%lu"), i + 1);
 			pvList->InsertItem(i, str);
-			str.Format(_T("%p"), pGDT->Addr[i]);
+			str.Format(_T("%08lX"), Base);
 			pvList->SetItemText(i, 1, str);
-			str.Format(_T("%016llX"), pGDT->uGDT[i]);
+			str.Format(_T("%016llX"), uInfo[i]);
 			pvList->SetItemText(i, 2, str);
 			str.Format(_T("%08lX"), Addr);
 			pvList->SetItemText(i, 4, str);
@@ -303,22 +302,25 @@ BOOL CR3R0::GetGDTs(CListCtrl* pvList)
 			pvList->SetItemText(i, 6, str);
 			str.Format(_T("%d"), G);
 			pvList->SetItemText(i, 7, str);
-			// 类型
-			if (S == 0)
+			if (uInfo[i] != 0)
 			{
-				if (eGDT->Type == 12)
-					str = L"调用门";  // 调用门
+				// 类型
+				if (S == 0)
+				{
+					if (eGDT->Type == 12)
+						str = L"调用门";  // 调用门
+					else
+						str = L"未知门";  // 未知类型
+				}
 				else
-					str = L"未知门";  // 未知类型
+				{
+					if (eGDT->Type < 8)
+						str = L"数据段";  // 数据段
+					else
+						str = L"代码段";  // 代码段
+				}
+				pvList->SetItemText(i, 3, str);
 			}
-			else
-			{
-				if (eGDT->Type < 8)
-					str = L"数据段";  // 数据段
-				else
-					str = L"代码段";  // 代码段
-			}
-			pvList->SetItemText(i, 3, str);
 			//printf("%3lu [%p] %016llX 段偏移 0x%08X P=%d S=%d G=%d\n",
 			//	i + 1, pGDT->Addr[i], pGDT->uGDT[i],
 			//	Addr, P, S, G);
@@ -350,11 +352,29 @@ BOOL CR3R0::GetSSDT(CListCtrl* pvList)
 			pvList->InsertItem(i, str);
 			str.Format(_T("%lX"), Addr[i]);
 			pvList->SetItemText(i, 1, str);
-			printf("%3lu [%08lX]\n",
-				i + 1, Addr[i]);
+			//printf("%3lu [%08lX]\n",
+			//	i + 1, Addr[i]);
 		}
 		return TRUE;
 	}
 	printf("读取SSDT表失败\n");
 	return 0;
+}
+
+BOOL CR3R0::SetSYSf()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	strcpy_s(pInfo->byBuf1, "SetSYSf");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		&& ulRet != 0)
+	{
+		printf("隐藏驱动失败。可能是已经隐藏了[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
 }

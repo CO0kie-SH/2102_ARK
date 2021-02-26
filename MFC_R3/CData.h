@@ -49,6 +49,7 @@ constexpr PTCHAR gszTreeFunctions1[] = {
 
 #define gnbTreeFunctions2					2	// 二级菜单
 #define gszTreeCtrl遍历驱动	gszTreeFunctions2[0]
+#define gszTreeCtrl隐藏驱动	gszTreeFunctions2[1]
 constexpr PTCHAR gszTreeFunctions2[] = {
 	_T("遍历驱动"),
 	_T("隐藏驱动")

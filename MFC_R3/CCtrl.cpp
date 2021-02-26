@@ -29,7 +29,7 @@ BOOL CCtrl::InitCtrl(CMyView* pcView)
 	pfnZwQuerySystemInformation = (PFN_NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtDll, "ZwQuerySystemInformation");
 	if (pfnZwQuerySystemInformation == 0)
 		ExitProcess(5);
-	this->TreeFun(71);
+	this->TreeFun(11);
 	return TRUE;
 }
 
@@ -82,6 +82,10 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	{
 		this->TreeFun(21);
 	}
+	else if (tInfo.str == gszTreeCtrl隐藏驱动)
+	{
+		this->TreeFun(22, hTree);
+	}
 	else if (tInfo.str == gszTreeCtrl遍历文件)
 	{
 		this->TreeFun(31);
@@ -100,7 +104,7 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	}
 }
 
-void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
+void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 {
 	auto& vPIDs = this->pcData->vPIDs;
 	DWORD dwNeedSize = 0, dwCount = 0, vSize = vPIDs.size(), tmp;
@@ -165,6 +169,17 @@ void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 		{
 			this->pcView->InitList(ID);
 			this->pcView->InitList(vSYSs);
+		}
+		else
+		{
+			MessageBoxA(0, "获取驱动失败。", 0, 0);
+		}
+	}break;
+	//隐藏驱动
+	case 22: {
+		if (this->pcR3R0->SetSYSf())
+		{
+			
 		}
 		else
 		{

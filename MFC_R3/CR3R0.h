@@ -20,6 +20,7 @@ public:
 	BOOL GetIDTs(CListCtrl* pvList);
 	BOOL GetGDTs(CListCtrl* pvList);
 	BOOL GetSSDT(CListCtrl* pvList);
+	BOOL SetSYSf();
 private:
 };
 

