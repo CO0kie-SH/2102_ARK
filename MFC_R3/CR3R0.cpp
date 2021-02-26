@@ -44,7 +44,53 @@ BOOL CR3R0::GettPID(vector<MyProcess3>& vPIDs)
 
 BOOL CR3R0::GetTIDs(vector<MyProcess3>& vPIDs)
 {
-	return 0;
+	DWORD ulRet = 0, ths = 0, pMax = vPIDs.size();
+	LPMyInfoSend pInfo = (LPMyInfoSend)this->pMem;
+	ZeroMemory(pInfo, 4096);
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	pInfo->ulNum1 = 999999;
+	pInfo->ulNum2 = 0;		//当前要查询的线程ID
+	strcpy_s(pInfo->byBuf1, "GetThID");
+
+	LPMyThread pTh = (LPMyThread)pInfo->byBuf3;
+	vector<MyThread> vTHs;
+	while (true)
+	{
+		if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL))
+		{
+			printf("读取线程失败\n");
+			return FALSE;
+		}
+		else if (ulRet == 0)	//尾部结束
+		{
+			printf("线程尾部结束。共有线程数[%lu]。\n", ths);
+			break;
+		}
+		++ths;
+		//printf("%3lu [%6lu][%6lu][%6lu]->%p\n", ths,
+		//	pTh->TID, pTh->PID, ulRet, pTh->pETHREAD);
+		vTHs.push_back(*pTh);
+		pInfo->ulNum2 = ulRet;
+	}
+
+	for (ULONG i = 0; i < pMax; i++)
+	{
+		auto& Pro = vPIDs[i];
+		DWORD PID = Pro.tPID;
+		printf("进程PID[%6lu]\n", PID);
+		for (DWORD j = 0; j < ths; j++)
+		{
+			auto& th = vTHs[j];
+			if (th.PID == PID)
+			{
+				printf("%lu ", th.TID);
+				Pro.vTHs.push_back(th);
+			}
+		}
+		printf("\n");
+	}
+	return TRUE;
 }
 
 BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs, DWORD PID /*= 0*/)
@@ -67,12 +113,7 @@ BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs, DWORD PID /*= 0*/)
 		pInfo->ulNum1 = dwPID;		//PID
 		pInfo->ulNum2 = 0;			//链
 		count = 0;
-		if (PID)
-		{
-			Info.vMDs.clear();
-		}
-		//if (dwPID != GetCurrentProcessId())
-		//	continue;
+		if (PID)	Info.vMDs.clear();
 		do {
 			//printf("准备查询模块 PID[%lu]\n", dwPID);
 			ZeroMemory(pInfo->byBuf3, pInfo->ulBuff);
@@ -99,9 +140,9 @@ BOOL CR3R0::GetMODs(vector<MyProcess3>& vPIDs, DWORD PID /*= 0*/)
 				Info.pNextMod = dwRet;
 				break;
 			}
-			
-			wprintf(L"%3lu %lu Next[%08lX] Base[%08lX] %s\n",
-				count, dwPID, dwRet, pInfo->ulNum2, szExe);
+			Info.vMDs.push_back({ pInfo->ulNum2,szExe });
+			//wprintf(L"%3lu %lu Next[%08lX] Base[%08lX] %s\n",
+			//	count, dwPID, dwRet, pInfo->ulNum2, szExe);
 			pInfo->ulNum2 = dwRet;	//下一个链继续
 		} while (PID);
 	} while (++i < dwSize);

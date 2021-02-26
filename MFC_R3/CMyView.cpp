@@ -84,26 +84,92 @@ void CMyView::InitList(DWORD ID)
 		this->pvList->InsertColumn(0, _T("PPID"), LVCFMT_LEFT, 55);
 		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 55);
 		break;
+	case 12:									//遍历模块
+		this->pvList->InsertColumn(0, _T("线程ETHREAD"), LVCFMT_LEFT, 111);
+		//this->pvList->InsertColumn(0, _T("模块名"), LVCFMT_LEFT, 123);
+		this->pvList->InsertColumn(0, _T("TID"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 66);
+		break;
+	case 13:									//遍历模块
+		this->pvList->InsertColumn(0, _T("模块路径"), LVCFMT_LEFT, 222);
+		//this->pvList->InsertColumn(0, _T("模块名"), LVCFMT_LEFT, 123);
+		this->pvList->InsertColumn(0, _T("BASE"), LVCFMT_LEFT, 88);
+		this->pvList->InsertColumn(0, _T("PID"), LVCFMT_LEFT, 66);
+		break;
 	default:
 		break;
 	}
 	this->pvList->InsertColumn(0, _T("序"), LVCFMT_LEFT, 55);
 }
 
-void CMyView::InitList(vector<MyProcess3>& vPIDs)
+void CMyView::InitList(vector<MyProcess3>& vPIDs, DWORD ID, DWORD PID)
 {
+	DWORD pMax = vPIDs.size();
 	CString str;
 	this->pvList->DeleteAllItems();		//清空行
-	for (DWORD i = 0,max = vPIDs.size(); i < max; i++)
+
+	switch (ID)
 	{
-		auto& Info = vPIDs[i];
-		str.Format(_T("%lu"), i + 1);
-		this->pvList->InsertItem(i, str);
-		str.Format(_T("%lu"), Info.tPID);
-		this->pvList->SetItemText(i, 1, str);
-		str.Format(_T("%lu"), Info.pPID);
-		this->pvList->SetItemText(i, 2, str);
-		this->pvList->SetItemText(i, 3, Info.szExe);
-		this->pvList->SetItemText(i, 4, Info.szPath);
+	//遍历进程
+	case 11: {
+		for (DWORD i = 0; i < pMax; i++)
+		{
+			auto& Info = vPIDs[i];
+			str.Format(_T("%lu"), i + 1);
+			this->pvList->InsertItem(i, str);
+			str.Format(_T("%lu"), Info.tPID);
+			this->pvList->SetItemText(i, 1, str);
+			str.Format(_T("%lu"), Info.pPID);
+			this->pvList->SetItemText(i, 2, str);
+			this->pvList->SetItemText(i, 3, Info.szExe);
+			this->pvList->SetItemText(i, 4, Info.szPath);
+		}
+	}break;
+	//遍历线程
+	case 12: {
+		for (DWORD i = 0; i < pMax; i++)
+		{
+			auto& Info = vPIDs[i];
+			if (Info.tPID != PID)	continue;
+			auto& Ths = Info.vTHs;
+			printf("线程数：%lu\n", Ths.size());
+			for (DWORD j = 0, max = Ths.size(); j < max; j++)
+			{
+				auto& Th = Ths[j];
+				str.Format(_T("%lu"), j + 1);
+				this->pvList->InsertItem(j, str);
+				str.Format(_T("%lu"), PID);
+				this->pvList->SetItemText(j, 1, str);
+				str.Format(_T("%lu"), Th.TID);
+				this->pvList->SetItemText(j, 2, str);
+				str.Format(_T("0x%08lX"), Th.pETHREAD);
+				this->pvList->SetItemText(j, 3, str);
+			}
+			break;
+		}
+	}break;
+	//遍历模块
+	case 13: {
+		for (DWORD i = 0; i < pMax; i++)
+		{
+			auto& Info = vPIDs[i];
+			if (Info.tPID != PID)	continue;
+			auto& Mds = Info.vMDs;
+			for (DWORD j = 0, max = Mds.size(); j < max; j++)
+			{
+				auto& Md = Mds[j];
+				str.Format(_T("%lu"), j + 1);
+				this->pvList->InsertItem(j, str);
+				str.Format(_T("%lu"), PID);
+				this->pvList->SetItemText(j, 1, str);
+				str.Format(_T("0x%08lX"), Md.Base);
+				this->pvList->SetItemText(j, 2, str);
+				this->pvList->SetItemText(j, 3, Md.str);
+			}
+		}
 	}
+	default:
+		break;
+	}
+
 }

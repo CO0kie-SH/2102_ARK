@@ -72,7 +72,7 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	else if (tInfo.str == gszTreeCtrl线程操作)
 	{
 		puts("用户点击了线程操作。");
-
+		this->TreeFun(12);
 	}
 	else if (tInfo.str == gszTreeCtrl模块操作)
 	{
@@ -84,7 +84,7 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 {
 	auto& vPIDs = this->pcData->vPIDs;
-	DWORD dwNeedSize = 0, dwCount = 0, vSize = vPIDs.size();
+	DWORD dwNeedSize = 0, dwCount = 0, vSize = vPIDs.size(), tmp;
 	switch (ID) {
 	//枚举进程
 	case 11: {
@@ -112,21 +112,27 @@ void CCtrl::TreeFun(DWORD ID, DWORD dwC1 /*= 0*/)
 			}
 			delete[] pBuffer; pBuffer = NULL;
 
+			this->pcR3R0->GetTIDs(vPIDs);
 			this->pcR3R0->GetMODs(vPIDs, 0);
 			this->pcView->InitList(ID);
-			this->pcView->InitList(vPIDs);
+			this->pcView->InitList(vPIDs, ID, 0);
 		}
 	}break;
 	//操作线程
 	case 12: {
-
+		tmp = pcData->mPID;
+		printf("准备显示线程 PID[%lu]\n", tmp);
+		this->pcView->InitList(ID);
+		this->pcView->InitList(vPIDs, ID, tmp);
 	}break;
 	//操作模块
 	case 13: {
-		printf("准备获取模块 PID[%lu]", pcData->mPID);
-		if (this->pcR3R0->GetMODs(vPIDs, pcData->mPID))
+		tmp = pcData->mPID;
+		printf("准备获取模块 PID[%lu]\n", tmp);
+		if (this->pcR3R0->GetMODs(vPIDs, tmp))
 		{
-
+			this->pcView->InitList(ID);
+			this->pcView->InitList(vPIDs, ID, tmp);
 		}
 		else
 		{
