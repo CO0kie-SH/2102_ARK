@@ -403,7 +403,21 @@ BOOL CR3R0::SYSHOOK()
 
 BOOL CR3R0::HidePID()
 {
-	return 0;
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	pInfo->ulNum1 = pcData->mPID;
+	strcpy_s(pInfo->byBuf1, "HidePID");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("Òþ²Ø½ø³ÌÊ§°Ü[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
 }
 
 BOOL CR3R0::ExitPID(CEditView* pvEdit)

