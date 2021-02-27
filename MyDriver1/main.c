@@ -152,6 +152,10 @@ VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 	{
 		UnHook();
 	}
+	if (g_ReNt)
+	{
+		UnHookNt();
+	}
 	// 删除符号链接名
 	UNICODE_STRING SymLinkName = { 0 };
 	RtlInitUnicodeString(&SymLinkName, SYMBOLICLINE_NAME);
@@ -170,6 +174,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
 	gDriverObject = DriverObject;
+	g_pDriver = DriverObject;
 	DriverObject->DriverUnload = DriverUnload;
 	//KdPrint(("\n驱动创建(%p)\n", DriverObject));
 

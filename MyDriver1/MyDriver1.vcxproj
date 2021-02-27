@@ -138,6 +138,9 @@
     <Link>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
+    <ClCompile>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />

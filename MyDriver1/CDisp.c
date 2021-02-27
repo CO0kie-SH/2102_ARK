@@ -166,7 +166,7 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "HidePID", 8)))
 	{
-		KdPrint(("比较: %s %s %lu->隐藏进程\n", FunName, "HidePID", uRet));
+		//KdPrint(("比较: %s %s %lu->隐藏进程\n", FunName, "HidePID", uRet));
 		return HidePID(pInfo);
 	}
 	else if (8 == (uRet = RtlCompareMemory(FunName, "ExitPID", 8)))
@@ -775,4 +775,10 @@ ULONG_PTR SSDTHOK(LPMyInfoSend pInfo)
 	KdPrint(("SSDT HOOK PID=[%lu] Open[%lu]！\n", PID, (ULONG)g_OldZwOpenProcess));
 
 	return PID;
+}
+
+ULONG_PTR RLoadNT(LPMyInfoSend pInfo)
+{
+	KernelReload();
+	return (ULONG)g_ReNt;
 }
