@@ -502,3 +502,22 @@ BOOL CR3R0::RLoadNT()
 	}
 	return TRUE;
 }
+
+BOOL CR3R0::SSDTHOK()
+{
+	ULONG ulRet = 0;
+	LPMyInfoSend pInfo = (LPMyInfoSend)pMem;
+	ZeroMemory(pInfo, sizeof(MyInfoSend));
+	pInfo->ulSize = 4096;
+	pInfo->ulBuff = 4000;
+	pInfo->ulNum1 = pcData->mPID;
+	strcpy_s(pInfo->byBuf1, "SSDTHOK");
+
+	if (!ReadFile(DeviceHandle, pMem, pInfo->ulSize, &ulRet, NULL)
+		|| ulRet == 0)
+	{
+		printf("SSDT HOOKÊ§°Ü[%lu]\n", ulRet);
+		return 0;
+	}
+	return TRUE;
+}

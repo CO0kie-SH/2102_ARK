@@ -85,12 +85,14 @@ constexpr PTCHAR gszTreeFunctions7[] = {
 	_T("遍历SSDT表")
 };
 
-#define gnbTreeFunctions8					2	// 二级菜单
+#define gnbTreeFunctions8					3	// 二级菜单
 #define gszTreeCtrlHOOKs	gszTreeFunctions8[0]
 #define gszTreeCtrlReLoadNT	gszTreeFunctions8[1]
+#define gszTreeCtrlSSDTHOOK	gszTreeFunctions8[2]
 constexpr PTCHAR gszTreeFunctions8[] = {
 	_T("Sysenter HOOK"),
-	_T("重载内核")
+	_T("重载内核"),
+	_T("SSDT HOOK")
 };
 
 

@@ -161,6 +161,26 @@ typedef  struct  _KSERVICE_TABLE_DESCRIPTOR
 }KSERVICE_TABLE_DESCRIPTOR, * PKSERVICE_TABLE_DESCRIPTOR;
 #pragma pack()
 
+#pragma region SSDTHOOK
+#pragma pack(1)
+typedef struct _ServiceDesriptorEntry
+{
+	ULONG* ServiceTableBase;        // 服务表基址
+	ULONG* ServiceCounterTableBase; // 计数表基址
+	ULONG NumberOfServices;         // 表中项的个数
+	UCHAR* ParamTableBase;          // 参数表基址
+}SSDTEntry, * PSSDTEntry;
+#pragma pack()
+// 函数原型
+typedef NTSTATUS(NTAPI* FnZwOpenProcess)(PHANDLE,
+	ACCESS_MASK,
+	POBJECT_ATTRIBUTES,
+	PCLIENT_ID);
+extern FnZwOpenProcess g_OldZwOpenProcess;
+
+#pragma endregion
+
+
 #define MAKELONG(a,b) ((LONG)(((UINT16)(((DWORD_PTR)(a))&0xffff)) | ((ULONG)((UINT16)(((DWORD_PTR)(b))& 0xffff)))<<16))
 NTKERNELAPI PPEB_EX PsGetProcessPeb(PEPROCESS Process);
 
@@ -203,8 +223,11 @@ ULONG_PTR HidePID(LPMyInfoSend pInfo);
 ULONG_PTR ExitPID(LPMyInfoSend pInfo);
 // 重载内核
 ULONG_PTR RLoadNT(LPMyInfoSend pInfo);
+// SSDTHOOK
+ULONG_PTR SSDTHOK(LPMyInfoSend pInfo);
 
 extern PDRIVER_OBJECT gDriverObject;
 extern PVOID gSysFirst;
 extern ULONG OriginalAddress;
 VOID UnHook();
+void UnInstallHook();

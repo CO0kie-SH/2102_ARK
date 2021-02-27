@@ -27,6 +27,7 @@ public:
 	BOOL CrtFile();
 	BOOL DelFile();
 	BOOL RLoadNT();
+	BOOL SSDTHOK();
 private:
 };
 

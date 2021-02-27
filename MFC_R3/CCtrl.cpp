@@ -126,6 +126,10 @@ void CCtrl::TreeClick(CTreeCtrl* cTree, HTREEITEM hTree)
 	{
 		this->TreeFun(82, hTree);
 	}
+	else if (tInfo.str == gszTreeCtrlSSDTHOOK)
+	{
+		this->TreeFun(83, hTree);
+	}
 }
 
 void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
@@ -311,6 +315,16 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 		else
 		{
 			MessageBoxA(0, "重载内核失败。", 0, 0);
+		}
+	}break;
+	//重载内核
+	case 83: {
+		if (this->pcR3R0->SSDTHOK())
+		{
+		}
+		else
+		{
+			MessageBoxA(0, "SSDT HOOK失败。可能是已经HOOK了", 0, 0);
 		}
 	}break;
 	default: break;

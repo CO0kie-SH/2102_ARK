@@ -42,6 +42,9 @@ VOID ListCurrentProcessAndThread()
 }
 */
 
+
+FnZwOpenProcess g_OldZwOpenProcess = 0;
+
 PDRIVER_OBJECT gDriverObject = 0;
 PVOID gSysFirst = 0;
 ULONG gSYSf = 0, kID = 0, kPID = 0, hookPID = 0;
@@ -175,6 +178,11 @@ ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 	{
 		KdPrint(("比较: %s %s %lu->重载内核\n", FunName, "RLoadNT", uRet));
 		return RLoadNT(pInfo);
+	}
+	else if (8 == (uRet = RtlCompareMemory(FunName, "SSDTHOK", 8)))
+	{
+		KdPrint(("比较: %s %s %lu->SSDT HOOK\n", FunName, "SSDTHOK", uRet));
+		return SSDTHOK(pInfo);
 	}
 	KdPrint(("比较: [%s] [%p] [%lu]->没有对应\n", FunName, pInfo, uRet));
 	return 0;
@@ -756,4 +764,15 @@ ULONG_PTR HidePID(LPMyInfoSend pInfo)
 		pNextPtr = pNextPtr->Flink;
 	}
 	return 0;
+}
+
+// 导入SSDT,直接声明就能使用
+NTSYSAPI SSDTEntry KeServiceDescriptorTable;
+
+ULONG_PTR SSDTHOK(LPMyInfoSend pInfo)
+{
+	ULONG PID = pInfo->ulNum1;
+	KdPrint(("SSDT HOOK PID=[%lu] Open[%lu]！\n", PID, (ULONG)g_OldZwOpenProcess));
+
+	return PID;
 }
