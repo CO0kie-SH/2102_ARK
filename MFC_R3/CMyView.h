@@ -10,7 +10,7 @@ public:
 	CListCtrl* pvList;
 	CEditView* pvEdit;
 	CButton* pvBttn;
-
+	DWORD GetEditDWORD();
 	map<HTREEITEM, MyTreeInfo> m_tLeafs;	//定义树节点索引
 public:
 	CMyView(CDialogEx* pDlg);

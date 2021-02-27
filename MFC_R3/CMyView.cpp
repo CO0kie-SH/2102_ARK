@@ -1,6 +1,12 @@
 #include "pch.h"
 #include "CMyView.h"
 
+DWORD CMyView::GetEditDWORD()
+{
+	this->pvEdit->GetWindowTextW(mStr);
+	return _tstol(mStr.GetString());
+}
+
 CMyView::CMyView(CDialogEx* pDlg)
 	:mListLastId(0)
 {

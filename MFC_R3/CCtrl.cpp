@@ -171,14 +171,14 @@ void CCtrl::TreeFun(DWORD ID, HTREEITEM hTree /*= 0*/)
 	}break;
 	//操作线程
 	case 12: {
-		tmp = pcData->mPID;
+		tmp = this->pcView->GetEditDWORD();
 		printf("准备显示线程 PID[%lu]\n", tmp);
 		this->pcView->InitList(ID);
 		this->pcView->InitList(vPIDs, ID, tmp);
 	}break;
 	//操作模块
 	case 13: {
-		tmp = pcData->mPID;
+		tmp = this->pcView->GetEditDWORD();
 		printf("准备获取模块 PID[%lu]\n", tmp);
 		if (this->pcR3R0->GetMODs(vPIDs, tmp))
 		{
