@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="CDisp.c" />
     <ClCompile Include="CMyFile.c" />
+    <ClCompile Include="CReg.c" />
     <ClCompile Include="CReNT.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="..\Header.h" />
     <ClInclude Include="CDisp.h" />
     <ClInclude Include="CMyFile.h" />
+    <ClInclude Include="CReg.h" />
     <ClInclude Include="CReNT.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -72,10 +72,6 @@ ULONG GetFunctionAddr_ASM(PKSYSTEM_SERVICE_TABLE KeServiceDescriptorTable, LONG 
 	return lgSsdtFunAddr;
 }
 
-void EnumRegedit()
-{
-}
-
 ULONG_PTR WriteDisp(LPCH FunName)
 {
 	ULONG_PTR uRet = 0;
@@ -86,7 +82,6 @@ ULONG_PTR WriteDisp(LPCH FunName)
 	}
 	return uRet;
 }
-
 
 ULONG_PTR ReadDisp(LPCH FunName, LPMyInfoSend pInfo)
 {
@@ -779,6 +774,7 @@ ULONG_PTR SSDTHOK(LPMyInfoSend pInfo)
 
 ULONG_PTR RLoadNT(LPMyInfoSend pInfo)
 {
+	UNREFERENCED_PARAMETER(pInfo);
 	KernelReload();
 	return (ULONG)g_ReNt;
 }

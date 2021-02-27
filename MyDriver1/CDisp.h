@@ -3,6 +3,7 @@
 #include <ntddk.h>
 #include "CMyFile.h"
 #include "CReNT.h"
+#include "CReg.h"
 
 
 //函数ZwQuerySystemInformation小结_sas???的博客-CSDN博客

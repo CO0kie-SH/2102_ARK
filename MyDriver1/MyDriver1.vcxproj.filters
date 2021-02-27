@@ -31,6 +31,9 @@
     <ClCompile Include="CReNT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CReg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CDisp.h">
@@ -43,6 +46,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CReNT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CReg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
